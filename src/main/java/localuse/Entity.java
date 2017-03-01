@@ -4,10 +4,11 @@ import bean.ComNerTerm;
 import bean.Frequence;
 import bean.RichTerm;
 import bean.SentenceTerm;
-import com.hankcs.hanlp.dictionary.py.PinyinUtil;
 import com.hankcs.hanlp.seg.common.Term;
 import com.hankcs.hanlp.tokenizer.StandardTokenizer;
+import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
+import conf.CmbConfiguration;
 import crfpp.CrfppRecognition;
 
 import java.io.File;
@@ -38,13 +39,17 @@ public class Entity
 
 	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
 
-    public Entity(CmbConfig cmbConfig)
+    public Entity(CmbConfig conf)
 	{
+//		Predefine.HANLP_PROPERTIES_PATH = conf.hanlp;
+		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
+//		rec = new CrfppRecognition(conf.modelfile);
 		rec = new CrfppRecognition("/home/hpre/program/cmb/model/model.crfpp");
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try
 		{
+//			scanner = new Scanner(new File(conf.rulefile));
 			scanner = new Scanner(new File("/home/hpre/program/cmb/model/rulefile"));
 			while (scanner.hasNext())
 			{
@@ -79,13 +84,17 @@ public class Entity
 //				System.out.println();
 		}
 		String ruleOut = ruleRecursion(type.toString().trim(), typeAndWord, sb);
+		StringBuffer inside_out = new StringBuffer();
 		if (!ruleOut.equals(""))
 		{
-			String[] tabSplit = ruleOut.split("\t");
-			ruleOut = tabSplit[0];
+			String[] lineSplit = ruleOut.split("\n");
+			for (String eachLine : lineSplit) {
+				String[] tabSplit = eachLine.split("\t");
+				inside_out.append(tabSplit[0]+"\n");
+			}
 //			System.out.println(ruleOut);
 		}
-		return ruleOut;
+		return inside_out.toString();
 	}
 
 
@@ -117,8 +126,14 @@ public class Entity
 				String ininside2 = inferenceInside(sentenceTerm2);
 				if (!ininside1.equals("") && !ininside2.equals(""))
 				{
-//					ininside1 = ininside1.replace("\\n","，");
-					ruleOut.append(ininside1+"，");
+					if (ininside1.contains("\n"))
+					{
+						ininside1 = ininside1.replace("\n","，");
+						ruleOut.append(ininside1);
+					}
+
+					else
+						ruleOut.append(ininside1+"，");
 					ruleOut.append(ininside2);
 				}
 				else
@@ -133,7 +148,8 @@ public class Entity
 				ruleOut.append(inferenceInside(sentenceTerm));
 
 			System.out.println(ruleOut.toString());
-			in.add(ruleOut.toString());
+			if (!ruleOut.toString().equals(""))
+				in.add(ruleOut.toString());
 		}
 		return in;
 	}
@@ -201,7 +217,7 @@ public class Entity
 
 
 	public static void main(String[] args) throws IOException {
-		Entity entity = new Entity(new CmbConfig());
+		Entity entity = new Entity(new CmbConfiguration().getCmb());
 		File dirInput = new File(args[0]);
 		File[] files = dirInput.listFiles();
 		File dirOut = new File(args[1]);
@@ -263,6 +279,34 @@ public class Entity
 			scanner.close();
 //			fileWriter.close();
 		}
+	}
+
+	public List<String> parse(String text)
+	{
+//		List<String> outList = new ArrayList<>();
+		List<ComNerTerm> dealList = deal(text);
+		String[] commaSplit = text.split("[，；。]");
+		List<String> sentenceList = new ArrayList<>();
+		tohere:for (int i = 0; i < commaSplit.length; i++)
+		{
+			for (String eachNuilty : nullity)
+			{ //无效句去除
+				if (commaSplit[i].startsWith(eachNuilty))
+					continue;
+			}
+			for (String eachSenten : specialSenten)
+			{
+				if (commaSplit[i].contains(eachSenten) && (i+1) < commaSplit.length)
+				{ //连句就不分开
+					sentenceList.add(commaSplit[i++]+"，"+commaSplit[i]);
+					continue tohere;
+				}
+			}
+			sentenceList.add(commaSplit[i]);
+		}
+		List<SentenceTerm> sentenceTerms = comServiceFuseJudou(sentenceList, dealList);
+		List<String> inference = inference(sentenceTerms);
+		return inference;
 	}
 
 	/*
@@ -509,6 +553,7 @@ public class Entity
 	static List<String> ATList = new ArrayList<>();
 	static List<String> OBList = new ArrayList<>();
 	static List<String> PRList = new ArrayList<>();
+
 	public static void loadBiaozhu()
 	{
 		List<RichTerm> richTermsList = new LinkedList<>();

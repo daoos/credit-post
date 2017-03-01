@@ -1,4 +1,12 @@
---
-Server:
+server:
   applicationConnectors:
   - type: http
+    port: 22222
+  adminConnectors:
+  - type: http
+    port: 24444
+
+cmb:
+    modelfile: /home/hpre/program/cmb/model/model.crfpp
+    rulefile: /home/hpre/program/cmb/model/rulefile
+    hanlp: /home/hpre/program/cmb/model/hanlp.properties
