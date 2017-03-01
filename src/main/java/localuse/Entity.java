@@ -10,12 +10,16 @@ import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
 import conf.CmbConfiguration;
 import crfpp.CrfppRecognition;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+
+import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 /**
  * Created by hpre on 16-12-16.
@@ -26,6 +30,7 @@ import java.util.*;
 public class Entity
 {
 
+	private static Log log = LogFactory.getLog(Entity.class);
     private static CrfppRecognition rec;
 	private static Map<String,String> ruleMap = null;
 
@@ -147,7 +152,8 @@ public class Entity
 			else
 				ruleOut.append(inferenceInside(sentenceTerm));
 
-			System.out.println(ruleOut.toString());
+			if (!ruleOut.toString().equals("") && ruleOut.toString().length() > 2)
+				System.out.println(ruleOut.toString());
 			if (!ruleOut.toString().equals(""))
 				in.add(ruleOut.toString());
 		}
@@ -226,7 +232,7 @@ public class Entity
 //			System.out.println();
 			System.out.println(file);
 			Scanner scanner = new Scanner(file);
-			if (file.toString().equals("/home/hpre/program/cmb/200份授信报告红色部分/58"))
+			if (file.toString().equals("/home/hpre/program/cmb/200份授信报告红色部分/20")) //program/cmb/200份授信报告红色部分/58
 				System.out.println();
 			FileWriter fileWriter = new FileWriter(dirOut.getAbsolutePath()+file.getAbsolutePath().toString().substring(dirInput.getAbsolutePath().length()));
 			while (scanner.hasNextLine()) {
@@ -247,6 +253,8 @@ public class Entity
 //				for (String s : split)
 //				{
 
+				strLine = strLine.trim();
+				strLine = strLine.replaceAll(" ","");
 				List<ComNerTerm> dealList = deal(strLine);
 				String[] commaSplit = strLine.split("[，；。]");
 				List<String> sentenceList = new ArrayList<>();
@@ -268,45 +276,61 @@ public class Entity
 					sentenceList.add(commaSplit[i]);
 				}
 				List<SentenceTerm> sentenceTerms = comServiceFuseJudou(sentenceList, dealList);
-				inference(sentenceTerms);
+				List<String> inference = inference(sentenceTerms);
 //				System.out.println();
 //				}
 //				List<Frequence> statistics = statistics(strLine);
-
-//				fileWriter.write(manualStr+"\n");
+				for (String s : inference)
+				{
+					fileWriter.write(s);
+				}
 //				System.out.println(manualStr);
 			}
 			scanner.close();
-//			fileWriter.close();
+			fileWriter.close();
 		}
 	}
 
+	/*
+	入口
+	 */
 	public List<String> parse(String text)
 	{
-//		List<String> outList = new ArrayList<>();
-		List<ComNerTerm> dealList = deal(text);
-		String[] commaSplit = text.split("[，；。]");
-		List<String> sentenceList = new ArrayList<>();
-		tohere:for (int i = 0; i < commaSplit.length; i++)
+		List<String> outList = new ArrayList<>();
+		String[] lineSplit = text.split("\n");
+		for (String eachLine : lineSplit)
 		{
-			for (String eachNuilty : nullity)
-			{ //无效句去除
-				if (commaSplit[i].startsWith(eachNuilty))
-					continue;
-			}
-			for (String eachSenten : specialSenten)
+			eachLine = eachLine.trim();
+			eachLine = eachLine.replaceAll(" ","");
+			List<ComNerTerm> dealList = deal(eachLine);
+			String[] commaSplit = eachLine.split("[，；。]");
+			List<String> sentenceList = new ArrayList<>();
+			tohere:for (int i = 0; i < commaSplit.length; i++)
 			{
-				if (commaSplit[i].contains(eachSenten) && (i+1) < commaSplit.length)
-				{ //连句就不分开
-					sentenceList.add(commaSplit[i++]+"，"+commaSplit[i]);
-					continue tohere;
+				for (String eachNuilty : nullity)
+				{ //无效句去除
+					if (commaSplit[i].startsWith(eachNuilty))
+						continue;
 				}
+				for (String eachSenten : specialSenten)
+				{
+					if (commaSplit[i].contains(eachSenten) && (i+1) < commaSplit.length)
+					{ //连句就不分开
+						sentenceList.add(commaSplit[i++]+"，"+commaSplit[i]);
+						continue tohere;
+					}
+				}
+				sentenceList.add(commaSplit[i]);
 			}
-			sentenceList.add(commaSplit[i]);
+			List<SentenceTerm> sentenceTerms = comServiceFuseJudou(sentenceList, dealList);
+			List<String> inference = inference(sentenceTerms);
+			for (String s : inference)
+			{
+				outList.add(s);
+			}
 		}
-		List<SentenceTerm> sentenceTerms = comServiceFuseJudou(sentenceList, dealList);
-		List<String> inference = inference(sentenceTerms);
-		return inference;
+
+		return outList;
 	}
 
 	/*
@@ -355,13 +379,14 @@ public class Entity
 		List<ComNerTerm> TermsList = new LinkedList<>();
 		StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
 
+
 		List<Term> termList = StandardTokenizer.segment(text);
-//            log.info("分词结果：" + termList);
+		log.info("分词结果：" + termList);
 
 		rec.addTerms(termList);
 
 		List<RichTerm> richTermList = rec.parse();
-//            log.info("标注结果：" + richTermList);
+		log.info("标注结果:"+richTermList);
 		StringBuffer sb = new StringBuffer();
 		int offset = 0;
 		for (RichTerm richTerm : richTermList)
