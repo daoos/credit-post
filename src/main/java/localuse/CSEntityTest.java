@@ -6,6 +6,7 @@ import com.hankcs.hanlp.tokenizer.StandardTokenizer;
 import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
 import conf.CmbConfiguration;
+import crfpp.CrfppRecognition;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -24,15 +25,15 @@ public class CSEntityTest
 //    private static String input = "/home/hpre/xiangya/views_ComTest/";
     private static String input = "/home/hpre/program/cmb/lengthTest/";
     private static String out = "/home/hpre/program/cmb/lengthTest-out/";
-    private static CrfppComRecognition recCS = null;
-    static JuDouConfig juDouConfig = null;
+    private static CrfppRecognition recCS = null;
+    static CmbConfig juDouConfig = null;
     static
     {
 
         Predefine.HANLP_PROPERTIES_PATH = new CmbConfiguration().getHanlp();
         CmbConfig cmbConfig = new CmbConfig();
-        recCS = new CrfppComRecognition("/home/hpre/program/cmb/model/80cmbFeature.crfpp");
-        Predefine.HANLP_PROPERTIES_PATH = "/model/judou/hanlp.properties";
+        recCS = new CrfppRecognition("/home/hpre/program/cmb/lengthmodel.crfpp");
+        Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
     }
 
     public static void main(String[] args) throws IOException {
