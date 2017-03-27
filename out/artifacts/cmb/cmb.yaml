@@ -1,0 +1,11 @@
+server:
+  applicationConnectors:
+  - type: http
+    port: 22222
+  adminConnectors:
+  - type: http
+    port: 24444
+
+modelfile: /model/model.crfpp
+rulefile: /model/rulefile
+hanlp: /model/hanlp.properties
