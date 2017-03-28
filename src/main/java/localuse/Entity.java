@@ -41,7 +41,7 @@ public class Entity
 
 	public static Pattern tipPattern = Pattern.compile("（\\d{1,2}）|\\d{1,2}）|\\d{1,2}");
 
-	public static String comVector[] = new String[]{"SU","PR", "AT", "OB"};
+	public static String comVector[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
 
 	public static String nullity[] = new String[]{"经审议","授信主体","授信币种及金额","业务品种","授信期限",
 			"价格条件", "还款条件","担保条件","分期还款","利率","还款方式","担保方式","同意","附原审批意见","发放要求",
