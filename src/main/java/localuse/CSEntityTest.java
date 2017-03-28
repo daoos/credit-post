@@ -15,14 +15,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static localuse.ChangeToFeature.listFile;
+
 /**
  * Created by hpre on 16-10-29.
  */
 public class CSEntityTest
 {
 
-
-//    private static String input = "/home/hpre/xiangya/views_ComTest/";
     private static String input = "/home/hpre/program/cmb/lengthTest/";
     private static String out = "/home/hpre/program/cmb/lengthTest-out/";
     private static CrfppRecognition recCS = null;
@@ -48,9 +48,8 @@ public class CSEntityTest
             while (scanner.hasNext())
             {
                 String str = scanner.nextLine();
-//                System.out.println(str);
                 String strings = csEntityTest.doJudou2(str);
-                System.out.println(strings);//"strings="
+                System.out.println(strings);
                 fileWriter.write(strings+"\n");
             }
             scanner.close();
@@ -61,7 +60,7 @@ public class CSEntityTest
     }
 
     /*
-    短句标注
+    短句标注 本类使用
      */
     public String doJudou2(String text)
     {
@@ -95,6 +94,9 @@ public class CSEntityTest
 
     }
 
+    /*
+    短句标注    App调用
+     */
     public List<String> doJudou(String text)
     {
         List<String> resultList = new ArrayList<String>();
@@ -136,39 +138,7 @@ public class CSEntityTest
             }
         }
         recCS.clear();
-
         return resultList;
 
-    }
-
-
-
-    public static List<String> listFile(String dirFile)
-    {
-        List<String> fileList = new ArrayList<>();
-        File listFile = new File(dirFile);
-        String absolutePath;
-        if (listFile.isDirectory())
-        {
-            File[] files = listFile.listFiles();
-            for (File file : files)
-            {
-                if (file.isFile())
-                {
-                    absolutePath = file.getAbsolutePath();
-                    fileList.add(absolutePath);
-                }
-                else
-                {
-                    listFile(file.getAbsolutePath());
-                }
-            }
-        }
-        else
-        {
-            absolutePath = listFile.getAbsolutePath();
-            fileList.add(absolutePath);
-        }
-        return fileList;
     }
 }
