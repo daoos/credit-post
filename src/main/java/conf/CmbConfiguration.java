@@ -10,13 +10,13 @@ public class CmbConfiguration extends Configuration{
     @JsonProperty()
     private CmbConfig cmb;
     @JsonProperty()
-    private String modelfile0;
+
+    private String cmbCom;
+
     @JsonProperty()
-    private String modelfile1;
+    private String cmbSenten;
     @JsonProperty()
-    private String modelfile2;
-    @JsonProperty()
-    private String rulefile;
+    private String ruleFile;
     @JsonProperty()
     private String hanlp;
 
@@ -29,43 +29,38 @@ public class CmbConfiguration extends Configuration{
         this.cmb = cmb;
     }
 
+
+    public String getCmbCom() {
+        return cmbCom;
+    }
+
+    public void setCmbCom(String cmbCom) {
+        this.cmbCom = cmbCom;
+
+    }
+
+    public String getCmbSenten() {
+        return cmbSenten;
+    }
+
+
+    public void setCmbSenten(String cmbSenten) {
+        this.cmbSenten = cmbSenten;
+    }
+
+    public String getRuleFile() {
+        return ruleFile;
+    }
+
+    public void setRuleFile(String ruleFile) {
+        this.ruleFile = ruleFile;
+    }
+
     public String getHanlp() {
         return hanlp;
     }
 
     public void setHanlp(String hanlp) {
         this.hanlp = hanlp;
-    }
-
-    public String getModelfile0() {
-        return modelfile0;
-    }
-
-    public void setModelfile0(String modelfile0) {
-        this.modelfile0 = modelfile0;
-    }
-
-    public String getModelfile1() {
-        return modelfile1;
-    }
-
-    public void setModelfile1(String modelfile1) {
-        this.modelfile1 = modelfile1;
-    }
-
-    public String getModelfile2() {
-        return modelfile2;
-    }
-
-    public void setModelfile2(String modelfile2) {
-        this.modelfile2 = modelfile2;
-    }
-
-    public String getRulefile() {
-        return rulefile;
-    }
-
-    public void setRulefile(String rulefile) {
-        this.rulefile = rulefile;
     }
 }

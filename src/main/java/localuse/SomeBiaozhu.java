@@ -8,8 +8,8 @@ import crfpp.CrfppRecognition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import parse.CmbParse;
+
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -19,11 +19,8 @@ import java.util.regex.Pattern;
 public class SomeBiaozhu {
 
 
-    private static Log log = LogFactory.getLog(Entity.class);
+    private static Log log = LogFactory.getLog(CmbParse.class);
     private static CrfppRecognition rec;
-    private static CrfppRecognition rec0;
-    private static CrfppRecognition rec1;
-    private static CrfppRecognition rec2;
     private static Map<String,String> ruleMap = null;
 
     public static Pattern tipPattern = Pattern.compile("（\\d{1,2}）|\\d{1,2}）|\\d{1,2}");

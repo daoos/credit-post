@@ -16,6 +16,7 @@ import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
 
+
 /**
  * Created by hpre on 17-3-4.
  */
@@ -38,12 +39,9 @@ public class ExcelRead {
         try {
             is = new FileInputStream(excelPath);
             // 2、声明工作簿对象
-            Workbook rwb = null;
-            try {
-                rwb = Workbook.getWorkbook(is);
-            } catch (BiffException e) {
-                e.printStackTrace();
-            }
+
+            Workbook rwb = Workbook.getWorkbook(is);
+
             // 3、获得工作簿的个数,对应于一个excel中的工作表个数
             rwb.getNumberOfSheets();
 
@@ -84,6 +82,9 @@ public class ExcelRead {
 
             }
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
+
+        } catch (BiffException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,8 +1,7 @@
 package services;
 
 import conf.CmbConfig;
-import conf.CmbConfiguration;
-import localuse.Entity;
+import parse.CmbParse;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -19,33 +18,18 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class CmbService {
 
-    private Entity cmbEntity;
+    private CmbParse cmbCmbParse;
         public CmbService(CmbConfig config)
         {
-            cmbEntity = new Entity(config);
+            cmbCmbParse = new CmbParse(config);
         }
 
         @POST
-        @Path("/api/cmb0")
+
+        @Path("/api/cmb")
         public List<String> parse0(String data)
         {
-            List<String> outList = cmbEntity.parse(data,"0");
-            return outList;
-        }
-
-        @POST
-        @Path("/api/cmb1")
-        public List<String> parse1(String data)
-        {
-            List<String> outList = cmbEntity.parse(data,"1");
-            return outList;
-        }
-
-        @POST
-        @Path("/api/cmb2")
-        public List<String> parse2(String data)
-        {
-            List<String> outList = cmbEntity.parse(data,"2");
+            List<String> outList = cmbCmbParse.parse(data);
             return outList;
         }
 }

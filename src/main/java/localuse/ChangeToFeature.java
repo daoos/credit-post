@@ -9,19 +9,21 @@ import java.util.List;
 import java.util.Scanner;
 
 /**
- * Created by hadoop on 17-3-27.
+
+ * Created by hpre on 16-10-27.
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hadoop/wnd/usr/cmb/80份授信报告红色部分句法分析/";
-    private static String out_file = "/home/hadoop/wnd/usr/cmb/featureLength.crfpp";
+    private static String train_file = "/home/hpre/program/cmb/cmbCom/";
+    private static String out_file = "/home/hpre/program/cmb/model/280cmbCom.crfpp";
 
-    //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
-    public static String biaoZhu[] = new String[]{"CS"};
-    //    public static String biaoZhu[] = new String[]{"O","T","D","P","C","S","N","A","Q","De"};
+//    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
+//    public static String biaoZhu[] = new String[]{"CS"};
+//    public static String biaoZhu[] = new String[]{"O","T","D","P","C","S","N","A","Q","De"};
+    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
     public static String sep = "_"; // "_"  "/"
 
-    //    private static String train_file = "/home/hpre/else/文档/out/";
+//    private static String train_file = "/home/hpre/else/文档/out/";
 //    private static String out_file = "/home/hpre/xiangya/pythonChengfen/featureCom3.com.qdcz.crfpp";
     public static void main(String[] args) throws IOException
 
@@ -82,7 +84,8 @@ public class ChangeToFeature
         //标注是否为OUT的标志，为true则为OUT。
         for (String splitedStr : lineSpaceSplit)
         {
-            strBiaoZhu = "CS";
+
+//            strBiaoZhu = "CS";
             if (splitedStr.equals("#SENT_BEG#/begin")||splitedStr.equals("#SENT_END#/end"))
             {
                 String[] slashSplit = splitedStr.split(sep);

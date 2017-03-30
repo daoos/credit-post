@@ -5,8 +5,9 @@ package conf;
  */
 public class CmbConfig {
     public String hanlp;
-    public String rulefile;
-    public String modelfile0;
-    public String modelfile1;
-    public String modelfile2;
+
+    public String ruleFile;
+    public String cmbCom;
+    public String cmbSenten;
+    public String url;
 }

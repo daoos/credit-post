@@ -17,6 +17,7 @@ public class Segment
 
 	private static String input = "/home/hadoop/wnd/usr/cmb/80份授信报告红色部分/";
 	private static String out = "/home/hadoop/wnd/usr/cmb/80份授信报告红色部分分词后/";
+
 //	public static String predicates[] = {"严控","了解","争取","做好","关注","分析","办妥","办理","加强","审查","审核","建立",
 //			"扩大","承诺","控制","提供","收集","明确","查询","核实","核查","检查","沟通","注意","监控","考虑","落实","要求",
 //			"监测","监管","确保","纳入","统计","观察","超过","跟踪","跟进","防止","预防"
@@ -41,7 +42,9 @@ public class Segment
 //				predicateList.add(predicate);
 //			}
 //		}
+
 		Predefine.HANLP_PROPERTIES_PATH = "/home/hadoop/wnd/ml/cmb/hanlp.properties";
+
 		File dirPath = new File(input);
 		File[] files = dirPath.listFiles();
 		for (File file : files)

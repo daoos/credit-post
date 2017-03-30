@@ -1,5 +1,3 @@
-package com.cmb;
-
 import conf.CmbConfiguration;
 import conf.ConfigurationHealthCheck;
 import io.dropwizard.Application;
