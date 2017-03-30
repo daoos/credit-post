@@ -62,8 +62,8 @@ public class CmbParse
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		url = cmbConfig.url;
-
+//		url = cmbConfig.url;
+		url = "";
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
@@ -94,13 +94,13 @@ public class CmbParse
 	App调用入口
 	 */
 	public List<String> parse(String text) {
-		try {
-			String objStr = query(text, url);
-			// 从python接口获取关联关系
-			System.out.println(objStr);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			String objStr = query(text, url);
+//			// 从python接口获取关联关系
+//			System.out.println(objStr);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 		text = cleanNoise(text);
 		// 数据预处理
@@ -135,6 +135,7 @@ public class CmbParse
 
 		List<String> normalization = normalization(outList);
 		// 数据规范化
+
 		return normalization;
 	}
 
@@ -155,7 +156,7 @@ public class CmbParse
 				BufferedReader reader = new BufferedReader(new InputStreamReader(entity2.getContent()));
 				String line = null;
 				while ((line = reader.readLine()) != null) {
-					System.out.println(line);
+//					System.out.println(line);
 					sb.append(line+"\n");
 				}
 				EntityUtils.consume(entity2);
@@ -182,10 +183,10 @@ public class CmbParse
 			List<ComNerTerm> newComNerTermList = new ArrayList<>();
 			for (int j = 0; j < comNerTermList.size() - 1; j++) {
 				if (comNerTermList.get(j).typeStr.equals("NA") && comNerTermList.get(j + 1).typeStr.equals("NA")) {
-					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length();
-					int strEnd = comNerTermList.get(j + 1).offset;
+					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length() - offset;
+					int strEnd = comNerTermList.get(j + 1).offset - offset;
 					String str = sentence.substring(strStart, strEnd);
-					System.out.println(str);
+//					System.out.println(str);
 					String andWord[] = new String[]{"与", "或", "和", "、", "及"};
 					boolean andTag = false;
 					for (String eachAndWord : andWord) {
@@ -262,7 +263,7 @@ public class CmbParse
 					String strLine = scanner.nextLine();
 					List<String> inference = cmbParse.parse(strLine);
 					for (String eachResult : inference) {
-						System.out.println(eachResult);
+//						System.out.println(eachResult);
 					}
 				}
 			} catch (FileNotFoundException e) {
@@ -352,6 +353,62 @@ public class CmbParse
 
 
 	/*
+	处理条件句
+	 */
+	public static String dealCondition(SentenceTerm sentenceTerm) {
+		StringBuffer sbAction = new StringBuffer();
+		List<ComNerTerm> comNerTermList = sentenceTerm.getComNerTermList();
+		if (comNerTermList.size() < 2) {
+			return sbAction.toString();
+		}
+		List<ComNerTerm> newComNerTerm = new ArrayList<>();
+		StringBuffer sbCondition = new StringBuffer();
+		String sentence = sentenceTerm.getSentence();
+		int location = sentenceTerm.getOffset();
+		String[] symbolSplit = sentence.split("[,，.。;；:：、]");
+		for (int i = 0; i < symbolSplit.length; i++) {
+			int sentenEnd = location + symbolSplit[i].length();
+			boolean appendTag = false;
+			for (ComNerTerm eachComNerTerm : comNerTermList) {
+				if (eachComNerTerm.typeStr.toString().equals("CO") && sbCondition.toString().equals("")) {
+					sbCondition.append("条件:" + eachComNerTerm.word);
+					location = eachComNerTerm.offset + eachComNerTerm.word.length();
+					continue;
+				}
+				if (eachComNerTerm.offset < location) {
+					continue;
+				}
+				if (location <= eachComNerTerm.offset && eachComNerTerm.offset < sentenEnd && !eachComNerTerm.typeStr.toString().equals("CO")) {
+					if (!newComNerTerm.contains(eachComNerTerm)) {
+						newComNerTerm.add(eachComNerTerm);
+						sbAction.append(eachComNerTerm.word);
+						appendTag = true;
+					}
+				}
+				else if (eachComNerTerm.offset > sentenEnd) {
+					break;
+				}
+			}
+//			comNerTermList = newComNerTerm;
+			if (appendTag) {
+				sbAction.append(",");
+
+			}
+			location = sentenEnd + 1;
+		}
+		if (sbAction.toString().length() > 0) {
+			String substring = sbAction.toString().substring(0, sbAction.toString().length() - 1);
+			String ret = sbCondition.toString() + " 动作:" + substring;
+			System.out.println(ret);
+			return  ret;
+		}
+		else {
+			return "";
+		}
+	}
+
+
+	/*
 	将List集合中的每一个SentenceTerm分别处理
 	 */
 	public static List<String> inference(List<SentenceTerm> sentenceTermList) {
@@ -361,41 +418,53 @@ public class CmbParse
 			String sentence = sentenceTerm.getSentence();
 			int offset = sentenceTerm.getOffset();
 			List<ComNerTerm> comNerTermList = sentenceTerm.getComNerTermList();
-			if (sentence.contains("，")) {
-
-				String[] split = sentence.split("，");
-				int splitInt = offset + split[0].length();
-				List<ComNerTerm> comNerTermList1 = new ArrayList<>();
-				List<ComNerTerm> comNerTermList2 = new ArrayList<>();
-				for (ComNerTerm comNerTerm : comNerTermList) {
-					if (comNerTerm.offset < splitInt)
-						comNerTermList1.add(comNerTerm);
-					else
-						comNerTermList2.add(comNerTerm);
-				}
-				SentenceTerm sentenceTerm1 = new SentenceTerm(split[0],comNerTermList1,offset);
-				SentenceTerm sentenceTerm2 = new SentenceTerm(split[1],comNerTermList2,splitInt+1);
-				String ininside1 = inferenceInside(sentenceTerm1);
-				String ininside2 = inferenceInside(sentenceTerm2);
-				if (!ininside1.equals("") && !ininside2.equals("")) {
-					if (ininside1.contains("\n")) {
-						ininside1 = ininside1.replace("\n","，");
-						ruleOut.append(ininside1);
-					}
-
-					else
-						ruleOut.append(ininside1+"，");
-					ruleOut.append(ininside2);
-				}
-				else {
-					if (!ininside1.equals(""))
-						ruleOut.append(ininside1);
-					if (!ininside2.equals(""))
-						ruleOut.append(ininside2);
+			boolean tagCO = false;
+			for (ComNerTerm eachComNerTerm : comNerTermList) {
+				if (eachComNerTerm.typeStr.toString().equals("CO")) {
+					tagCO = true;
 				}
 			}
-			else
-				ruleOut.append(inferenceInside(sentenceTerm));
+			if (tagCO) {
+				ruleOut.append(dealCondition(sentenceTerm));
+			}
+			else {
+				if (sentence.contains("，")) {
+
+					String[] split = sentence.split("，");
+					int splitInt = offset + split[0].length();
+					List<ComNerTerm> comNerTermList1 = new ArrayList<>();
+					List<ComNerTerm> comNerTermList2 = new ArrayList<>();
+					for (ComNerTerm comNerTerm : comNerTermList) {
+						if (comNerTerm.offset < splitInt)
+							comNerTermList1.add(comNerTerm);
+						else
+							comNerTermList2.add(comNerTerm);
+					}
+					SentenceTerm sentenceTerm1 = new SentenceTerm(split[0],comNerTermList1,offset);
+					SentenceTerm sentenceTerm2 = new SentenceTerm(split[1],comNerTermList2,splitInt+1);
+					String ininside1 = inferenceInside(sentenceTerm1);
+					String ininside2 = inferenceInside(sentenceTerm2);
+					if (!ininside1.equals("") && !ininside2.equals("")) {
+						if (ininside1.contains("\n")) {
+							ininside1 = ininside1.replace("\n","，");
+							ruleOut.append(ininside1);
+						}
+
+						else
+							ruleOut.append(ininside1+"，");
+						ruleOut.append(ininside2);
+					}
+					else {
+						if (!ininside1.equals(""))
+							ruleOut.append(ininside1);
+						if (!ininside2.equals(""))
+							ruleOut.append(ininside2);
+					}
+				}
+				else
+					ruleOut.append(inferenceInside(sentenceTerm));
+			}
+
 
 			if (!ruleOut.toString().equals(""))
 				in.add(ruleOut.toString());
@@ -444,8 +513,10 @@ public class CmbParse
 			if (rule.equals(""))
 				return sb.toString();
 			else {
-				System.out.println(rule);
-				System.out.println(lineStr);
+//				System.out.println(rule);
+				if (!rule.contains("AC")) {
+//					System.out.println(lineStr);
+				}
 				return sb.toString();
 			}
 		}
