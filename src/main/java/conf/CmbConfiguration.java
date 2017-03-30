@@ -10,11 +10,16 @@ public class CmbConfiguration extends Configuration{
     @JsonProperty()
     private CmbConfig cmb;
     @JsonProperty()
-    private String modelfile;
+    private String modelfile0;
+    @JsonProperty()
+    private String modelfile1;
+    @JsonProperty()
+    private String modelfile2;
     @JsonProperty()
     private String rulefile;
     @JsonProperty()
     private String hanlp;
+
 
     public CmbConfig getCmb() {
         return cmb;
@@ -24,7 +29,6 @@ public class CmbConfiguration extends Configuration{
         this.cmb = cmb;
     }
 
-
     public String getHanlp() {
         return hanlp;
     }
@@ -33,12 +37,28 @@ public class CmbConfiguration extends Configuration{
         this.hanlp = hanlp;
     }
 
-    public String getModelfile() {
-        return modelfile;
+    public String getModelfile0() {
+        return modelfile0;
     }
 
-    public void setModelfile(String modelfile) {
-        this.modelfile = modelfile;
+    public void setModelfile0(String modelfile0) {
+        this.modelfile0 = modelfile0;
+    }
+
+    public String getModelfile1() {
+        return modelfile1;
+    }
+
+    public void setModelfile1(String modelfile1) {
+        this.modelfile1 = modelfile1;
+    }
+
+    public String getModelfile2() {
+        return modelfile2;
+    }
+
+    public void setModelfile2(String modelfile2) {
+        this.modelfile2 = modelfile2;
     }
 
     public String getRulefile() {

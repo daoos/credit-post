@@ -1,12 +1,31 @@
 server:
   applicationConnectors:
   - type: http
+    port: 9009
+  adminConnectors:
+  - type: http
+    port: 9008
+
+cmb:
+    modelfile0: /home/hadoop/wnd/ml/model/model.crfpp
+    modelfile1: /home/hadoop/wnd/ml/model.crfpp
+    modelfile2: /home/hadoop/wnd/ml/model.crfpp
+    rulefile: /home/hadoop/wnd/ml/rulefile
+    hanlp: /home/hpre/program/cmb/model/hanlp.properties
+
+
+
+server:
+  applicationConnectors:
+  - type: http
     port: 22222
   adminConnectors:
   - type: http
     port: 24444
 
 cmb:
-    modelfile: /home/hpre/program/cmb/model/model.crfpp
+    modelfile0: /home/hpre/program/cmb/model/model.crfpp
+    modelfile1: /home/hpre/program/cmb/model/model.crfpp
+    modelfile2: /home/hpre/program/cmb/model/model.crfpp
     rulefile: /home/hpre/program/cmb/model/rulefile
     hanlp: /home/hpre/program/cmb/model/hanlp.properties

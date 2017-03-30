@@ -1,7 +1,10 @@
 package localuse;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+
+import java.io.*;
 import java.util.Scanner;
 
 /**
@@ -9,12 +12,103 @@ import java.util.Scanner;
  */
 public class frequenceCount {
     private static String input = "/home/hpre/else/文档/frequence2";
+    public static String excelPath = "/home/hpre/program/cmb/附：文本分析-授信报告样本-20170209-03系列 超算结果分析反馈2.xls";
 
     public static void main(String[] args) {
-        count1();
+//        count1();
 //        count2();
 //        count3();
+//        count200();
+        System.out.println();
+        calProportion();
     }
+
+    /*
+    计算占的比例
+     */
+    public static void calProportion() {
+        String calProportionFile = "/home/hpre/比例";
+        Scanner scanner = null;
+        try {
+            scanner = new Scanner(new File(calProportionFile));
+            double sum = 0;
+            while (scanner.hasNext()) {
+                String strLine = scanner.nextLine();
+                String[] tabSplit = strLine.split("\t");
+                sum += Double.parseDouble(tabSplit[1]);
+            }
+            System.out.println(sum);
+            scanner.close();
+            scanner = new Scanner(new File(calProportionFile));
+            while (scanner.hasNext()) {
+                String strLine = scanner.nextLine();
+                String[] tabSplit = strLine.split("\t");
+//                System.out.print(tabSplit[0]+"\t");
+//                System.out.println(Double.parseDouble(tabSplit[1])/sum);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            scanner.close();
+        }
+    }
+
+    /*
+    统计各分类在200份里的词频
+     */
+    public static void count200() {
+        String classFile = "/home/hpre/分类";
+        Scanner scanner1 = null;
+        try {
+            scanner1 = new Scanner(new File(classFile));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        while (scanner1.hasNext()) {
+            String strLine = scanner1.nextLine();
+            if (strLine.startsWith("#") || strLine.startsWith("---") || strLine.length() < 2)
+                continue;
+            String[] colonSplit = strLine.split("：");
+            if (!colonSplit[1].contains("；"))
+                System.out.println(strLine);
+            String[] semicolonSplit = colonSplit[1].split("；");
+            int count = 0;
+            InputStream is = null;
+            try {
+                is = new FileInputStream(excelPath);
+                // 2、声明工作簿对象
+                Workbook rwb = Workbook.getWorkbook(is);
+                // 3、获得工作簿的个数,对应于一个excel中的工作表个数
+                rwb.getNumberOfSheets();
+
+                Sheet oFirstSheet = rwb.getSheet(1);// 使用索引形式获取第一个工作表，也可以使用rwb.getSheet(sheetName);其中sheetName表示的是工作表的名称
+//              System.out.println("工作表名称：" + oFirstSheet.getName());
+                int rows = oFirstSheet.getRows();//获取工作表中的总行数
+                int columns = oFirstSheet.getColumns();//获取工作表中的总列数
+                for (int i = 0; i < rows; i++) {
+                    Cell oCell = oFirstSheet.getCell(3, i);//需要注意的是这里的getCell方法的参数，第一个是指定第几列，第二个参数才是指定第几行
+                    String contents = oCell.getContents();
+                    for (String eachObj : semicolonSplit) {
+                        if (contents.contains(eachObj)) {
+                            count++;
+                            continue;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println(colonSplit[0] + "\t" + count);
+        }
+        scanner1.close();
+    }
+
 
     private static void count1()
     {

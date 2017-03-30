@@ -2,4 +2,7 @@
 *.iml
 *.xml
 *.lst
+*.jar
+*.sh
+*.MF
 
