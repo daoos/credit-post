@@ -11,3 +11,4 @@ cmb:
     cmbSenten: /home/hpre/program/cmb/model/cmbSenten.crfpp
     cmbCom: /home/hpre/program/cmb/model/cmbCom.crfpp
     ruleFile: /home/hpre/program/cmb/model/ruleFile
+    url: http://0.0.0.0:5002/relation

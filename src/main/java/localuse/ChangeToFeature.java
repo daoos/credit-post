@@ -13,7 +13,7 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hpre/program/cmb/280份标注/";
+    private static String train_file = "/home/hpre/program/cmb/cmbCom/";
     private static String out_file = "/home/hpre/program/cmb/model/280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};

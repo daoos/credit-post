@@ -8,9 +8,16 @@ import conf.CmbConfiguration;
 import crfpp.CrfppRecognition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * Created by hpre on 16-12-16.
  *
- * 招行
+ * 招行授信文本分析
  */
 
 public class CmbParse
@@ -44,18 +51,18 @@ public class CmbParse
 
 	private ComParse comParse = null;
 	private SentenParse sentenParse = null;
+	private String url = null;
 
     public CmbParse(CmbConfig cmbConfig) {
 		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
-		rec = new CrfppRecognition("/home/hpre/program/cmb/model/cmbCom.crfpp");
 //		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
-//		rec = new CrfppRecognition(cmbConfig.cmbCom);
 		try {
 			comParse = new ComParse(cmbConfig);
 			sentenParse = new SentenParse(cmbConfig);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		url = cmbConfig.url;
 
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
@@ -87,6 +94,14 @@ public class CmbParse
 	App调用入口
 	 */
 	public List<String> parse(String text) {
+		try {
+			String objStr = query(text, url);
+			// 从python接口获取关联关系
+			System.out.println(objStr);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		text = cleanNoise(text);
 		// 数据预处理
 
@@ -125,6 +140,36 @@ public class CmbParse
 
 
 	/*
+	访问python接口获取关联关系
+	 */
+	public static String query(String content, String url) throws IOException {
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+		StringBuffer sb = new StringBuffer();
+		try {
+			HttpPost httpPost = new HttpPost(url);
+			HttpEntity entity = new ByteArrayEntity(content.getBytes());
+			httpPost.setEntity(entity);
+			CloseableHttpResponse response = httpclient.execute(httpPost);
+			try {
+				HttpEntity entity2 = response.getEntity();
+				BufferedReader reader = new BufferedReader(new InputStreamReader(entity2.getContent()));
+				String line = null;
+				while ((line = reader.readLine()) != null) {
+					System.out.println(line);
+					sb.append(line+"\n");
+				}
+				EntityUtils.consume(entity2);
+			} finally {
+				response.close();
+			}
+		} finally {
+			httpclient.close();
+		}
+		return sb.toString();
+	}
+
+
+	/*
 	sentenceTerms预处理	合并相同成分
 	 */
 	private List<SentenceTerm> preDeal(List<SentenceTerm> sentenceTerms) {
@@ -137,20 +182,35 @@ public class CmbParse
 			List<ComNerTerm> newComNerTermList = new ArrayList<>();
 			for (int j = 0; j < comNerTermList.size() - 1; j++) {
 				if (comNerTermList.get(j).typeStr.equals("NA") && comNerTermList.get(j + 1).typeStr.equals("NA")) {
-					ComNerTerm newComNerTerm = new ComNerTerm();
-					newComNerTerm.typeStr = "NA";
-					newComNerTerm.offset = comNerTermList.get(j).offset;
-					newComNerTerm.word = comNerTermList.get(j).word + comNerTermList.get(j++).word;
-					newComNerTermList.add(newComNerTerm);
+					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length();
+					int strEnd = comNerTermList.get(j + 1).offset;
+					String str = sentence.substring(strStart, strEnd);
+					System.out.println(str);
+					String andWord[] = new String[]{"与", "或", "和", "、", "及"};
+					boolean andTag = false;
+					for (String eachAndWord : andWord) {
+						if (str.contains(eachAndWord))
+							andTag = true;
+					}
+					if (!andTag) {
+						ComNerTerm newComNerTerm = new ComNerTerm();
+						newComNerTerm.typeStr = "NA";
+						newComNerTerm.offset = comNerTermList.get(j).offset;
+						newComNerTerm.word = comNerTermList.get(j).word + comNerTermList.get(++j).word;
+						newComNerTermList.add(newComNerTerm);
+					}
 				}
 				else {
 					newComNerTermList.add(comNerTermList.get(j));
 				}
 			}
+			if (comNerTermList.size() >= 1)
+				newComNerTermList.add(comNerTermList.get(comNerTermList.size() - 1));
 			newSentenceTerms.add(new SentenceTerm(sentence, newComNerTermList, offset));
 		}
 		return newSentenceTerms;
 	}
+
 
 	/*
     融合句子划分和成分识别
@@ -185,67 +245,48 @@ public class CmbParse
 		return sTermList;
 	}
 
-/*
-	public static void main(String[] args) throws IOException {
-		CmbParse entity = new CmbParse(new CmbConfiguration().getCmb());
+
+	/*
+	本地测试多份文本
+	 */
+	public static void main(String[] args) {
+		CmbParse cmbParse = new CmbParse(new CmbConfiguration().getCmb());
 		File dirInput = new File(args[0]);
 		File[] files = dirInput.listFiles();
-		File dirOut = new File(args[1]);
 		for (File file: files) {
-//			System.out.println();
-//			System.out.println();
 			System.out.println(file);
-			Scanner scanner = new Scanner(file);
-//			if (file.toString().equals("/home/hpre/projects/cmbPython/20份测试/")) //program/cmb/200份授信报告红色部分/58
-//				System.out.println();
-			FileWriter fileWriter = new FileWriter(dirOut.getAbsolutePath()+file.getAbsolutePath().toString().substring(dirInput.getAbsolutePath().length()));
-
-			StringBuffer sb = new StringBuffer();
-			while (scanner.hasNextLine()) {
-//				List<RichTerm> list = deal(scanner.nextLine());
-//				for (RichTerm sent: list) {
-//					System.out.println(sent);
-//				}
-				String strLine = scanner.nextLine();
-				sb.append(strLine);
-//				List<Term> segment = StandardTokenizer.segment(strLine);
-//				StringBuffer sb = new StringBuffer();
-//				for (Term term : segment)
-//				{
-//					sb.append(term.word+"_"+term.nature+" ");
-//				}
-//				String manualStr = automaticBiaozhu(sb.toString());
-//				String manualStr = manualBiaozhu(strLine);
-//				String[] split = strLine.split("[。；，]");
-//				for (String s : split)
-//				{
-
-
-//				System.out.println();
-//				}
-//				List<Frequence> statistics = statistics(strLine);
-//				System.out.println(manualStr);
+			Scanner scanner = null;
+			try {
+				scanner = new Scanner(file);
+				while (scanner.hasNextLine()) {
+					String strLine = scanner.nextLine();
+					List<String> inference = cmbParse.parse(strLine);
+					for (String eachResult : inference) {
+						System.out.println(eachResult);
+					}
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
 			}
-			List<String> inference = entity.parse(sb.toString(), "2");
-			for (String s : inference)
-			{
-				System.out.println(s);
-				fileWriter.write(s);
+			finally {
+				scanner.close();
 			}
-			scanner.close();
-			fileWriter.close();
 		}
 	}
-*/
 
-	public static void main(String[] args) {
-		String text = "";
-//		String out = clean_noise(text);
-		CmbParse cmbParse = new CmbParse(new CmbConfiguration().getCmb());
-		List<String> parse_out = cmbParse.parse(text);
-		System.out.println();
-//		System.out.println(out);
-	}
+
+//	/*
+//	本地测试单份文本
+//	 */
+//	public static void main(String[] args) {
+//		String text = "";
+////		String out = clean_noise(text);
+//		CmbParse cmbParse = new CmbParse(new CmbConfiguration().getCmb());
+//		List<String> parse_out = cmbParse.parse(text);
+//		System.out.println();
+////		System.out.println(out);
+//	}
+
 
 	/*
 	预处理  主要删除空格，将英文符号转中文符号，去除一些黑色部分
@@ -362,6 +403,7 @@ public class CmbParse
 		return in;
 	}
 
+
 	/*
 	从SentenceTerm通过规则推导出最终结果
 	 */
@@ -391,6 +433,7 @@ public class CmbParse
 		return inside_out.toString();
 	}
 
+
 	/*
     规则递归推导
      */
@@ -401,8 +444,8 @@ public class CmbParse
 			if (rule.equals(""))
 				return sb.toString();
 			else {
-//				System.out.println(rule);
-//				System.out.println(lineStr);
+				System.out.println(rule);
+				System.out.println(lineStr);
 				return sb.toString();
 			}
 		}

@@ -18,7 +18,8 @@ public class SentenParse {
     private CrfppRecognition recCS;
 
     public SentenParse(CmbConfig cmbConfig) {
-        recCS = new CrfppRecognition(cmbConfig.cmbSenten);
+//        recCS = new CrfppRecognition(cmbConfig.cmbSenten);
+        recCS = new CrfppRecognition("/home/hpre/program/cmb/model/cmbSenten.crfpp");
     }
 
     /*

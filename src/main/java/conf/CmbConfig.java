@@ -8,4 +8,5 @@ public class CmbConfig {
     public String ruleFile;
     public String cmbCom;
     public String cmbSenten;
+    public String url;
 }

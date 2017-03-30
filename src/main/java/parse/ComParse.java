@@ -24,12 +24,13 @@ import java.util.Scanner;
 public class ComParse {
     private static Log log = LogFactory.getLog(ComParse.class);
 
-    private CrfppRecognition rec = null;
+    private CrfppRecognition recCom = null;
 
     public static String comVector[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
 
     public ComParse(CmbConfig config) throws FileNotFoundException {
-        rec = new CrfppRecognition(config.cmbCom);
+//        rec = new CrfppRecognition(config.cmbCom);
+        recCom = new CrfppRecognition("/home/hpre/program/cmb/model/cmbCom.crfpp");
     }
 
     /*
@@ -45,10 +46,10 @@ public class ComParse {
         List<Term> termList = StandardTokenizer.segment(text);
 //		log.info("分词结果：" + termList);
 
-        rec.addTerms(termList);
+        recCom.addTerms(termList);
 
-        List<RichTerm> richTermList = rec.parse();
-//		log.info("标注结果:"+richTermList);
+        List<RichTerm> richTermList = recCom.parse();
+		log.info("标注结果:"+richTermList);
         StringBuffer sb = new StringBuffer();
         int offset = 0;
         for (RichTerm richTerm : richTermList) {
@@ -86,7 +87,7 @@ public class ComParse {
                 }
             }
         }
-        rec.clear();
+        recCom.clear();
 //      log.info("归并后的结果：" + termsList);
         return TermsList;
     }
