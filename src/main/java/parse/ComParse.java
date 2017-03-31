@@ -29,8 +29,8 @@ public class ComParse {
     public static String comVector[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
 
     public ComParse(CmbConfig config) throws FileNotFoundException {
-//        rec = new CrfppRecognition(config.cmbCom);
-        recCom = new CrfppRecognition("/home/hpre/program/cmb/model/cmbCom.crfpp");
+        recCom = new CrfppRecognition(config.cmbCom);
+//        recCom = new CrfppRecognition("/home/hpre/program/cmb/model/cmbCom.crfpp");
     }
 
     /*
@@ -49,7 +49,7 @@ public class ComParse {
         recCom.addTerms(termList);
 
         List<RichTerm> richTermList = recCom.parse();
-		log.info("标注结果:"+richTermList);
+//		log.info("标注结果:"+richTermList);
         StringBuffer sb = new StringBuffer();
         int offset = 0;
         for (RichTerm richTerm : richTermList) {
@@ -95,19 +95,21 @@ public class ComParse {
     public static void main(String args[]) throws IOException {
         File dir = new File(args[0]);
         CmbConfig config = new CmbConfig();
-        FileWriter fileWriter = new FileWriter(new File("/home/hpre/规则2"));
-        ComParse cs = new ComParse(config);
+        FileWriter fileWriter = new FileWriter(new File("/home/hpre/program/cmb/成分测试结果"));
+        ComParse com = new ComParse(config);
         for (File f : dir.listFiles()) {
             Scanner input = new Scanner(f);
-
+            System.out.println(f.getAbsolutePath());
             while (input.hasNext()) {
                 String string = input.nextLine();
                 int tagUse = 1;
 
                 fileWriter.write(string+"\n");
-                List<ComNerTerm> comServiceOut = cs.comService(string);
-                System.out.println(comServiceOut);
-                fileWriter.write(comServiceOut+"\n");
+                List<ComNerTerm> comServiceOut = com.comService(string);
+                if (comServiceOut.size() != 0) {
+                    System.out.println(comServiceOut);
+                    fileWriter.write(comServiceOut + "\n");
+                }
             }
             input.close();
         }

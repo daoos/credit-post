@@ -1,24 +1,19 @@
 package localuse;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import com.hankcs.hanlp.HanLP;
-import com.hankcs.hanlp.seg.common.Term;
-import com.hankcs.hanlp.tokenizer.StandardTokenizer;
 import com.hankcs.hanlp.utility.Predefine;
-import jxl.*;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
 import jxl.read.biff.BiffException;
+
+import java.io.*;
 
 /**
  * Created by hpre on 17-3-4.
  */
 public class ExcelRead {
 
-    public static String excelPath = "/home/hpre/program/cmb/附：文本分析-授信报告样本-20170209-03系列 超算结果分析反馈2.xls";
+    public static String excelPath = "/home/hpre/program/cmb/note/280份授信报告样本——类型提取2.xls";
 
     public static void main(String[] args) {
         excelRead(2);
@@ -28,7 +23,6 @@ public class ExcelRead {
     public static String excelRead(int col)
     {
         Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
-
 
         String s = "";
         InputStream is = null;
@@ -43,37 +37,13 @@ public class ExcelRead {
 //        System.out.println("工作表名称：" + oFirstSheet.getName());
             int rows = oFirstSheet.getRows();//获取工作表中的总行数
             int columns = oFirstSheet.getColumns();//获取工作表中的总列数
-            for (int i = 0; i < rows; i++)
+            for (int i = 4; i < rows; i++)
             {
-
                 Cell oCell= oFirstSheet.getCell(col,i);//需要注意的是这里的getCell方法的参数，第一个是指定第几列，第二个参数才是指定第几行
                 String contents = oCell.getContents();
-                System.out.println(contents);
-                StandardTokenizer.SEGMENT.enableNameRecognize(true);
-                StandardTokenizer.SEGMENT.enableOrganizationRecognize(true);
-                StandardTokenizer.SEGMENT.enableJapaneseNameRecognize(false).enableIndexMode(false).
-                        enableTranslatedNameRecognize(false).enablePlaceRecognize(false);
-
-                List<Term> segStr = StandardTokenizer.segment(contents);
-//                System.out.println(contents);
-                for (Term term : segStr)
-                {
-//                    System.out.print(term.word+" ");
-//                    if (term.nature.toString().equals("nt"))
-//                    {
-//                        System.out.println("公司-->"+term.word);
-//                    }
-//                    else if (term.nature.toString().equals("nr"))
-//                        System.out.println("人名-->"+term.word);
-//                    else if (term.nature.toString().equals("ntc"))
-//                    {
-//                        System.out.println("ss" +term.word);
-//                    }
-                }
-//                System.out.println();
-//                System.out.println(segStr);
-//                    System.out.println(oCell.getContents()+"\r\n");
-
+                FileWriter fileWriter = new FileWriter(new File("/home/hpre/program/cmb/280份全文/" + oFirstSheet.getCell(0, i).getContents()));
+                fileWriter.write(contents);
+                fileWriter.close();
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

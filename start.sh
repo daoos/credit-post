@@ -1,1 +1,1 @@
-nohup java -cp target/cmb-1.0-SNAPSHOT.jar:dependency/* App server cmb.yaml > cmb.out 2>&1 &
+nohup java -cp target/cmb-1.0-SNAPSHOT.jar:dependency/* access.App server cmb.yaml > cmb.out 2>&1 &

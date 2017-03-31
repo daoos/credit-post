@@ -54,21 +54,21 @@ public class CmbParse
 	private String url = null;
 
     public CmbParse(CmbConfig cmbConfig) {
-		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
-//		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
+//		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
+		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
 			sentenParse = new SentenParse(cmbConfig);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-//		url = cmbConfig.url;
-		url = "";
+		url = cmbConfig.url;
+//		url = "";
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
-//			scanner = new Scanner(new File(cmbConfig.ruleFile));
-			scanner = new Scanner(new File("/home/hpre/program/cmb/model/ruleFile"));
+			scanner = new Scanner(new File(cmbConfig.ruleFile));
+//			scanner = new Scanner(new File("/home/hpre/program/cmb/model/ruleFile"));
 			while (scanner.hasNext()) {
 				String ruleStr = scanner.nextLine();
 				if (ruleStr != null && ruleStr.length() < 2) {
@@ -399,7 +399,7 @@ public class CmbParse
 		if (sbAction.toString().length() > 0) {
 			String substring = sbAction.toString().substring(0, sbAction.toString().length() - 1);
 			String ret = sbCondition.toString() + " 动作:" + substring;
-			System.out.println(ret);
+//			System.out.println(ret);
 			return  ret;
 		}
 		else {
@@ -509,12 +509,20 @@ public class CmbParse
 	public static String ruleRecursion(String rule,String lineStr,StringBuffer sb)
 	{
 		String ruleOut = ruleMap.get(rule);
-		if (ruleOut==null) {
+		if (ruleOut == null) {
 			if (rule.equals(""))
 				return sb.toString();
 			else {
 //				System.out.println(rule);
-				if (!rule.contains("AC")) {
+				// TODO: 17-3-30  加缺失成分后面要仔细处理
+				if (!rule.contains("AC") && rule.contains("OB")) {
+					rule = "AC " + rule;
+					lineStr = "AC" + lineStr;
+					lineStr = lineStr.replace("\t", "\t要求 ");
+					ruleOut = ruleMap.get(rule);
+					if (ruleOut == null) {
+						return sb.toString();
+					}
 //					System.out.println(lineStr);
 				}
 				return sb.toString();
