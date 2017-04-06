@@ -1,4 +1,0 @@
-Manifest-Version: 1.0
-Class-Path: cmb2.jar
-Main-Class: access.App
-

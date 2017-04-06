@@ -17,16 +17,16 @@ public class ComNerTerm implements Serializable
     {
     }
 
-    public ComNerTerm(String s, String w)
+    public ComNerTerm(String typeStr, String word)
     {
-        this.typeStr = s;
-        this.word = w;
+        this.typeStr = typeStr;
+        this.word = word;
     }
 
-    public ComNerTerm(String w, String s, int offset)
+    public ComNerTerm(String word, String typeStr, int offset)
     {
-        this.word = w;
-        this.typeStr = s;
+        this.word = word;
+        this.typeStr = typeStr;
         this.offset = offset;
     }
 

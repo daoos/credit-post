@@ -36,17 +36,20 @@ public class CmbParse
 
 	public static Pattern tipPattern = Pattern.compile("（\\d{1,2}）|\\d{1,2}）|\\d{1,2}");
 
-	public static String nullity[] = new String[]{"经审议","授信主体","授信币种及金额","业务品种","授信期限",
-			"价格条件", "还款条件","担保条件","分期还款","利率","还款方式","担保方式","同意","附原审批意见","发放要求",
-			"小计","备用额度","合计", "注：","还款安排","编号","放款安排","保证条件","额度项","提用方式","额度启用条件",
-			"使用要求", "启用要求","预留额度"," 成员企业名单","还款计划","借款人","信托金额","币种金额","额度内容",
-			"额度期限", "增信方式","还款来源","分期还款","分行审批意见","保函受益人","费率","被担保人","贷款利率",
+//	public static String nullity[] = new String[]{"经审议","授信主体","授信币种及金额","业务品种","授信期限",
+//			"价格条件", "还款条件","担保条件","分期还款","利率","还款方式","担保方式","同意","附原审批意见","发放要求",
+//			"小计","备用额度","合计", "注：","还款安排","编号","放款安排","保证条件","额度项","提用方式","额度启用条件",
+//			"使用要求", "启用要求","预留额度"," 成员企业名单","还款计划","借款人","信托金额","币种金额","额度内容",
+//			"额度期限", "增信方式","还款来源","分期还款","分行审批意见","保函受益人","费率","被担保人","贷款利率",
+//
+//			"建议","提款进度安排及相应条件","主要承诺事项","抄送","结论抄送"
+//	};
 
-			"建议","提款进度安排及相应条件","主要承诺事项","抄送","结论抄送"
+	public static String nullity[] = new String[]{"抄送","结论抄送"
 	};
 
-	public static String noises[] = new String[]{"经审议","担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
-
+//	public static String noises[] = new String[]{"经审议","担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
+	public static String noises[] = new String[]{};
 //	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
 
 	private ComParse comParse = null;
@@ -54,21 +57,21 @@ public class CmbParse
 	private String url = null;
 
     public CmbParse(CmbConfig cmbConfig) {
-//		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
-		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
+		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
+//		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
 			sentenParse = new SentenParse(cmbConfig);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		url = cmbConfig.url;
-//		url = "";
+//		url = cmbConfig.url;
+		url = "";
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
-			scanner = new Scanner(new File(cmbConfig.ruleFile));
-//			scanner = new Scanner(new File("/home/hpre/program/cmb/model/ruleFile"));
+//			scanner = new Scanner(new File(cmbConfig.ruleFile));
+			scanner = new Scanner(new File("/home/hpre/program/cmb/model/ruleFile"));
 			while (scanner.hasNext()) {
 				String ruleStr = scanner.nextLine();
 				if (ruleStr != null && ruleStr.length() < 2) {
@@ -94,13 +97,6 @@ public class CmbParse
 	App调用入口
 	 */
 	public List<String> parse(String text) {
-//		try {
-//			String objStr = query(text, url);
-//			// 从python接口获取关联关系
-//			System.out.println(objStr);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
 
 		text = cleanNoise(text);
 		// 数据预处理
@@ -137,36 +133,6 @@ public class CmbParse
 		// 数据规范化
 
 		return normalization;
-	}
-
-
-	/*
-	访问python接口获取关联关系
-	 */
-	public static String query(String content, String url) throws IOException {
-		CloseableHttpClient httpclient = HttpClients.createDefault();
-		StringBuffer sb = new StringBuffer();
-		try {
-			HttpPost httpPost = new HttpPost(url);
-			HttpEntity entity = new ByteArrayEntity(content.getBytes());
-			httpPost.setEntity(entity);
-			CloseableHttpResponse response = httpclient.execute(httpPost);
-			try {
-				HttpEntity entity2 = response.getEntity();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(entity2.getContent()));
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-//					System.out.println(line);
-					sb.append(line+"\n");
-				}
-				EntityUtils.consume(entity2);
-			} finally {
-				response.close();
-			}
-		} finally {
-			httpclient.close();
-		}
-		return sb.toString();
 	}
 
 
@@ -250,12 +216,18 @@ public class CmbParse
 	/*
 	本地测试多份文本
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		CmbParse cmbParse = new CmbParse(new CmbConfiguration().getCmb());
 		File dirInput = new File(args[0]);
 		File[] files = dirInput.listFiles();
 		for (File file: files) {
 			System.out.println(file);
+			if (file.toString().equals("/home/hpre/program/cmb/1000份全文/97")) {
+				System.out.println();
+			}
+
+//			FileWriter fileWriter = new FileWriter(file);
+
 			Scanner scanner = null;
 			try {
 				scanner = new Scanner(file);
@@ -271,22 +243,12 @@ public class CmbParse
 			}
 			finally {
 				scanner.close();
+//				fileWriter.flush();
+//				fileWriter.close();
 			}
 		}
 	}
 
-
-//	/*
-//	本地测试单份文本
-//	 */
-//	public static void main(String[] args) {
-//		String text = "";
-////		String out = clean_noise(text);
-//		CmbParse cmbParse = new CmbParse(new CmbConfiguration().getCmb());
-//		List<String> parse_out = cmbParse.parse(text);
-//		System.out.println();
-////		System.out.println(out);
-//	}
 
 
 	/*
@@ -419,55 +381,59 @@ public class CmbParse
 			int offset = sentenceTerm.getOffset();
 			List<ComNerTerm> comNerTermList = sentenceTerm.getComNerTermList();
 			boolean tagCO = false;
+			boolean tagEX = false;
+			String EXOB = "";
+			String EXWord = "";
+			List<ComNerTerm> EXComNerTermList = new ArrayList<>();
+			String EXSentence = sentence;
+			int EXLength = 0;
 			for (ComNerTerm eachComNerTerm : comNerTermList) {
 				if (eachComNerTerm.typeStr.toString().equals("CO")) {
 					tagCO = true;
 				}
+				if (eachComNerTerm.typeStr.toString().equals("EX")) {
+					tagEX = true;
+					EXSentence = EXSentence.replace(eachComNerTerm.word, "");
+					if (EXWord.equals("")) {
+						EXWord = eachComNerTerm.word;
+						EXLength = EXWord.length();
+					}
+					else {
+						EXLength = EXLength + eachComNerTerm.word.length();
+						EXWord = EXWord + "," + eachComNerTerm.word;
+					}
+				}
+				else {
+					String typeStr = eachComNerTerm.typeStr;
+					String word = eachComNerTerm.word;
+					int offset1 = eachComNerTerm.offset;
+					EXComNerTermList.add(new ComNerTerm(word, typeStr, offset1 - EXLength));
+				}
+				if (eachComNerTerm.typeStr.toString().equals("OB")) {
+					EXOB = eachComNerTerm.word;
+				}
 			}
 			if (tagCO) {
+				sentenceTerm = new SentenceTerm(EXSentence, EXComNerTermList, offset);
 				ruleOut.append(dealCondition(sentenceTerm));
 			}
 			else {
-				if (sentence.contains("，")) {
-
-					String[] split = sentence.split("，");
-					int splitInt = offset + split[0].length();
-					List<ComNerTerm> comNerTermList1 = new ArrayList<>();
-					List<ComNerTerm> comNerTermList2 = new ArrayList<>();
-					for (ComNerTerm comNerTerm : comNerTermList) {
-						if (comNerTerm.offset < splitInt)
-							comNerTermList1.add(comNerTerm);
-						else
-							comNerTermList2.add(comNerTerm);
-					}
-					SentenceTerm sentenceTerm1 = new SentenceTerm(split[0],comNerTermList1,offset);
-					SentenceTerm sentenceTerm2 = new SentenceTerm(split[1],comNerTermList2,splitInt+1);
-					String ininside1 = inferenceInside(sentenceTerm1);
-					String ininside2 = inferenceInside(sentenceTerm2);
-					if (!ininside1.equals("") && !ininside2.equals("")) {
-						if (ininside1.contains("\n")) {
-							ininside1 = ininside1.replace("\n","，");
-							ruleOut.append(ininside1);
-						}
-
-						else
-							ruleOut.append(ininside1+"，");
-						ruleOut.append(ininside2);
-					}
-					else {
-						if (!ininside1.equals(""))
-							ruleOut.append(ininside1);
-						if (!ininside2.equals(""))
-							ruleOut.append(ininside2);
-					}
+				if (tagEX) {
+					sentenceTerm = new SentenceTerm(EXSentence, EXComNerTermList, offset);
 				}
-				else
-					ruleOut.append(inferenceInside(sentenceTerm));
+				List<SentenceTerm> connect = connect(sentenceTerm);
+				for (SentenceTerm eachSentenTerm : connect) {
+					ruleOut.append(inferenceInside(eachSentenTerm));
+				}
 			}
-
-
-			if (!ruleOut.toString().equals(""))
-				in.add(ruleOut.toString());
+			String strRuleOut = ruleOut.toString();
+			if (tagEX && !EXOB.equals("") && strRuleOut.contains(EXOB)) {
+				strRuleOut = strRuleOut.replace(EXOB, EXOB + "【" + EXWord + "】");
+//				System.out.println("--------------->>"+strRuleOut);
+			}
+			if (!ruleOut.toString().equals("")) {
+				in.add(strRuleOut);
+			}
 		}
 		return in;
 	}
@@ -500,6 +466,160 @@ public class CmbParse
 //			System.out.println(ruleOut);
 		}
 		return inside_out.toString();
+	}
+
+
+	private static List<SentenceTerm> connect(SentenceTerm sentenceTerm)
+	{
+		List<SentenceTerm> sentenceTermList = new ArrayList<>();
+		List<String> sentenList = new ArrayList<>();  //用于排除相同的句子
+		sentenceTermList.add(sentenceTerm);
+		sentenList.add(sentenceTerm.getSentence());
+		if (hasDouble(sentenceTerm.getComNerTermList()))
+		{
+			String doubleValues[] = new String[]{"OB", "NA"};
+			int count = 0;
+			while (true)
+			{
+				System.out.println(sentenceTerm.getSentence());
+				outer:
+				for (int q = 0;q < sentenceTermList.size();q++)
+				{
+					List<ComNerTerm> comNerTermList = sentenceTermList.get(q).getComNerTermList();
+					for (int i = 0; i < comNerTermList.size() - 1; i++)
+					{
+						for (String doubleValue : doubleValues)
+						{
+							if (comNerTermList.get(i).typeStr.equals(doubleValue) && comNerTermList.get(i + 1).typeStr.equals(doubleValue))
+							{
+
+								int l = comNerTermList.get(i + 1).offset - comNerTermList.get(i).offset;
+								int subStart = comNerTermList.get(i).offset - sentenceTerm.getOffset();  //第一个D的起始位置-句子的起始位置
+								String subSentence = sentenceTermList.get(q).getSentence().substring(subStart, subStart + l);
+								String replaceStr = subSentence+comNerTermList.get(i+1).word;
+								if ((subSentence.contains("、")||subSentence.contains("或")||subSentence.contains("及")||subSentence.contains("与")))
+								{
+									//重组成新的２句话
+									//左肺及右肺下见斑片影　　将“左肺及右肺下”分别替换为“左肺”和“右肺下”
+									String senten1 = sentenceTermList.get(q).getSentence().replace(replaceStr,comNerTermList.get(i).word);
+									List<ComNerTerm> comNerTerm1 = new ArrayList<>();
+									for (int j = 0; j < comNerTermList.size(); j++)
+									{
+										if (j!=(i+1))
+										{
+											int offset1 = comNerTermList.get(j).offset;
+											int weiyi = sentenceTermList.get(q).getSentence().length()-senten1.length();
+											if (comNerTermList.get(j).offset>=comNerTermList.get(i+1).offset)
+											{
+												offset1 -= weiyi;
+											}
+											comNerTerm1.add(new ComNerTerm(comNerTermList.get(j).typeStr,comNerTermList.get(j).word,offset1));
+										}
+									}
+									SentenceTerm newSenterm1 = new SentenceTerm(senten1,comNerTerm1,comNerTerm1.get(0).offset);
+									String senten2 = sentenceTermList.get(q).getSentence().replace(replaceStr,comNerTermList.get(i+1).word);
+									List<ComNerTerm> comNerTerm2 = new ArrayList<>();
+									for (int j = 0; j < comNerTermList.size(); j++)
+									{
+										if (j != i)
+										{
+											int offset2 = comNerTermList.get(j).offset;
+											int weiyi = sentenceTermList.get(q).getSentence().length()-senten2.length();
+											if (comNerTermList.get(j).offset>=comNerTermList.get(i).offset)
+											{
+												offset2 -= weiyi;
+											}
+											comNerTerm2.add(new ComNerTerm(comNerTermList.get(j).typeStr,comNerTermList.get(j).word,offset2));
+										}
+									}
+									SentenceTerm newSenterm2 = new SentenceTerm(senten2,comNerTerm2,comNerTerm2.get(0).offset);
+									//移除原来的，加上分好的子句
+									sentenceTermList.remove(q);
+									sentenList.remove(q);
+									if (!sentenList.contains(newSenterm1.getSentence()))
+									{
+										sentenceTermList.add(newSenterm1);
+										sentenList.add(newSenterm1.getSentence());
+									}
+									if (!sentenList.contains(newSenterm2.getSentence()))
+									{
+										sentenceTermList.add(newSenterm2);
+										sentenList.add(newSenterm2.getSentence());
+									}
+									break outer;
+								}
+								else
+								{
+									//重新生成一个句子
+									String newsentence = sentenceTermList.get(q).getSentence();
+									int newoffset = sentenceTermList.get(q).getOffset();
+									List<ComNerTerm> newComNerTerm = new ArrayList<>();
+
+									for (int i1 = 0; i1 < comNerTermList.size(); i1++)
+									{
+										if (i1 == i)
+										{
+											newComNerTerm.add(new ComNerTerm(comNerTermList.get(i).typeStr,replaceStr,comNerTermList.get(i).offset));
+											continue ;
+										}
+										if (i1 != (i+1))
+										{
+											newComNerTerm.add(new ComNerTerm(comNerTermList.get(i1).typeStr,comNerTermList.get(i1).word,comNerTermList.get(i1).offset));
+										}
+									}
+									SentenceTerm newSentenceTerm = new SentenceTerm(newsentence,newComNerTerm,newoffset);
+									sentenceTermList.remove(q);
+									sentenList.remove(q);
+									if (!sentenList.contains(newSentenceTerm.getSentence()));
+									{
+										sentenceTermList.add(newSentenceTerm);
+										sentenList.add(newSentenceTerm.getSentence());
+									}
+									break outer;
+								}
+							}
+						}
+					}
+				}
+
+
+				int t = 0;
+				for (SentenceTerm term : sentenceTermList) {
+					if (!hasDouble(term.getComNerTermList())) {
+						t++;
+					}
+				}
+				if (t == sentenceTermList.size()) //如果都没有连续属性出现就退出
+					break;
+				count++;
+				if (count>15)break;  //防止陷入死循环
+			}
+		}
+
+		return sentenceTermList;
+	}
+
+
+	//判断是否还存在需要连续的O或D或T
+	private static boolean hasDouble(List<ComNerTerm> comNerTermList)
+	{
+		StringBuffer sb = new StringBuffer();
+		for (ComNerTerm comNerTerm : comNerTermList)
+		{
+			sb.append(comNerTerm.typeStr+" ");
+		}
+//		if (ruleMap.get(sb.toString().trim())!=null)
+//		{ //如果有这样的规则，则不需要分句
+//			return false;
+//		}
+		if (sb.toString().contains("OB OB")||sb.toString().contains("NA NA"))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 
@@ -557,6 +677,9 @@ public class CmbParse
 					word = word+" ";
 				}
 				else {
+					if (aChar > '9') {
+						aChar = aChar - 7;
+					}
 					word = word+spaceSplit2[aChar-48];
 				}
 			}
@@ -574,7 +697,17 @@ public class CmbParse
 			String[] lineSplit = eachOut.split("\n");
 			for (String eachLine : lineSplit) {
 				if (!normalList.contains(eachLine)) {
-					normalList.add(eachLine);
+					if (eachLine.contains("，") && !eachLine.contains("【") && !eachLine.contains("条件")) {
+						String[] commaSplit = eachLine.split("，");
+						for (String eachCommaSplit : commaSplit) {
+							normalList.add(eachCommaSplit);
+//							System.out.println(eachCommaSplit);
+						}
+					}
+					else {
+						normalList.add(eachLine);
+//						System.out.println(eachLine);
+					}
 				}
 			}
 		}
