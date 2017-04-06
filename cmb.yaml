@@ -7,10 +7,10 @@ server:
     port: 9008
 
 cmb:
-    hanlp: /home/hpre/program/cmb/model/hanlp.properties
-    cmbSenten: /home/hpre/program/cmb/model/cmbSenten.crfpp
-    cmbCom: /home/hpre/program/cmb/model/cmbCom.crfpp
-    ruleFile: /home/hpre/program/cmb/model/ruleFile
+    hanlp: /home/hadoop/wnd/ml/cmb/hanlp.properties
+    cmbSenten: /home/hadoop/wnd/usr/cmb/learnModel/cmbSenten.crfpp
+    cmbCom: /home/hadoop/wnd/usr/cmb/learnModel/cmbCom.crfpp
+    ruleFile: /home/hadoop/wnd/usr/cmb/learnModel/ruleFile
     url: http://0.0.0.0:5002/relation
 
 

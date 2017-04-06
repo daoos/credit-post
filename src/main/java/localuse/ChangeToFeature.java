@@ -14,8 +14,8 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hpre/program/cmb/cmbCom/";
-    private static String out_file = "/home/hpre/program/cmb/model/280cmbCom.crfpp";
+    private static String train_file = "/home/hadoop/wnd/usr/cmb/280份授信报告红色部分成分标注/";
+    private static String out_file = "/home/hadoop/wnd/usr/cmb/learnModel/cmb_finally.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
 //    public static String biaoZhu[] = new String[]{"CS"};

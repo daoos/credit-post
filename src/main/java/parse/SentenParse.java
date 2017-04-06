@@ -19,7 +19,7 @@ public class SentenParse {
 
     public SentenParse(CmbConfig cmbConfig) {
 //        recCS = new CrfppRecognition(cmbConfig.cmbSenten);
-        recCS = new CrfppRecognition("/home/hpre/program/cmb/model/cmbSenten.crfpp");
+        recCS = new CrfppRecognition("/home/hadoop/wnd/usr/cmb/learnModel/cmbSenten.crfpp");
     }
 
     /*
@@ -74,18 +74,20 @@ public class SentenParse {
         Set<String> sets = new HashSet<>();
         for (File file: files) {
             Scanner input = new Scanner(file);
-
+            System.out.println(file.getAbsolutePath());
             while (input.hasNextLine()) {
                 List<String> list = juDouParser.sentenService(input.nextLine());
-
-                for (String sent: list) {
-                    if (sent.contains(",") || sent.contains("，"))
-                        sets.add(sent);
+                for (String s : list) {
+                    System.out.println(s);
                 }
+//                for (String sent: list) {
+//                    if (sent.contains(",") || sent.contains("，"))
+//                        sets.add(sent);
+//                }
             }
         }
-        for (String sent: sets) {
-            System.out.println(sent);
-        }
+//        for (String sent: sets) {
+//            System.out.println(sent);
+//        }
     }
 }

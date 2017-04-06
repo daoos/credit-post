@@ -47,6 +47,7 @@ public class CmbParse
 
 	public static String noises[] = new String[]{"经审议","担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
 
+
 //	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
 
 	private ComParse comParse = null;
@@ -62,13 +63,13 @@ public class CmbParse
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		url = cmbConfig.url;
-
+	//	url = cmbConfig.url;
+		url= "";//测试使用 记得注释
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
 //			scanner = new Scanner(new File(cmbConfig.ruleFile));
-			scanner = new Scanner(new File("/home/hadoop/wnd/usr/cmb/ruleFile"));
+			scanner = new Scanner(new File("/home/hadoop/wnd/usr/cmb/learnModel/ruleFile"));
 			while (scanner.hasNext()) {
 				String ruleStr = scanner.nextLine();
 				if (ruleStr != null && ruleStr.length() < 2) {
@@ -94,13 +95,13 @@ public class CmbParse
 	App调用入口
 	 */
 	public List<String> parse(String text) {
-		try {
-			String objStr = query(text, url);
-			// 从python接口获取关联关系
-			System.out.println(objStr);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			String objStr = query(text, url);
+//			// 从python接口获取关联关系
+//			System.out.println(objStr);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 		text = cleanNoise(text);
 		// 数据预处理
@@ -124,8 +125,13 @@ public class CmbParse
 			// 句子标注
 			List<SentenceTerm> sentenceTerms = comFuseSenten(sentenList, comNerTermList);
 			// 成分句子融合
+
+			addedDefault(sentenceTerms);
+			//补充缺省
+
 			sentenceTerms = preDeal(sentenceTerms);
 			// sentenceTerms预处理
+
 			List<String> inference = inference(sentenceTerms);
 			// 处理每一句
 			for (String eachResult : inference) {
@@ -167,8 +173,15 @@ public class CmbParse
 		}
 		return sb.toString();
 	}
+	/*
+	补充缺省,处理办法
+	（1)。长句逗号直接改顿号
+	（2)。后半句缺失AC，给之加上
+	 */
+	private  List<SentenceTerm> addedDefault(List<SentenceTerm> sentenceTerms){
 
-
+		return null;
+	}
 	/*
 	sentenceTerms预处理	合并相同成分
 	 */
@@ -182,8 +195,9 @@ public class CmbParse
 			List<ComNerTerm> newComNerTermList = new ArrayList<>();
 			for (int j = 0; j < comNerTermList.size() - 1; j++) {
 				if (comNerTermList.get(j).typeStr.equals("NA") && comNerTermList.get(j + 1).typeStr.equals("NA")) {
-					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length();
-					int strEnd = comNerTermList.get(j + 1).offset;
+					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length()-comNerTermList.get(0).offset;
+					int strEnd = comNerTermList.get(j + 1).offset-comNerTermList.get(0).offset;
+
 					String str = sentence.substring(strStart, strEnd);
 					System.out.println(str);
 					String andWord[] = new String[]{"与", "或", "和", "、", "及"};
@@ -255,6 +269,8 @@ public class CmbParse
 		File[] files = dirInput.listFiles();
 		for (File file: files) {
 			System.out.println(file);
+			if(file.toString().endsWith("/197"))
+				System.out.println();
 			Scanner scanner = null;
 			try {
 				scanner = new Scanner(file);
@@ -262,7 +278,7 @@ public class CmbParse
 					String strLine = scanner.nextLine();
 					List<String> inference = cmbParse.parse(strLine);
 					for (String eachResult : inference) {
-						System.out.println(eachResult);
+					//	System.out.println(eachResult);
 					}
 				}
 			} catch (FileNotFoundException e) {
@@ -444,7 +460,7 @@ public class CmbParse
 			if (rule.equals(""))
 				return sb.toString();
 			else {
-				System.out.println(rule);
+//				System.out.println(rule);
 				System.out.println(lineStr);
 				return sb.toString();
 			}
