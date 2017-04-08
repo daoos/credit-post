@@ -14,13 +14,13 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hadoop/wnd/usr/cmb/280份授信报告红色部分成分标注/";
-    private static String out_file = "/home/hadoop/wnd/usr/cmb/learnModel/cmb_finally.crfpp";//280cmbCom.crfpp";
+    private static String train_file = "/home/hadoop/wnd/usr/cmb/280份授信报告红色部分句法分析/";
+    private static String out_file = "/home/hadoop/wnd/usr/cmb/learnModel/280cmbCom.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
-//    public static String biaoZhu[] = new String[]{"CS"};
+    public static String biaoZhu[] = new String[]{"CS"};
 //    public static String biaoZhu[] = new String[]{"O","T","D","P","C","S","N","A","Q","De"};
-    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
+//    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
     public static String sep = "_"; // "_"  "/"
 
 //    private static String train_file = "/home/hpre/else/文档/out/";
@@ -42,7 +42,9 @@ public class ChangeToFeature
         for (String filePath : filesPath)
         {
             file = new File(filePath);
-
+//            String result="";
+            if(file.toString().endsWith("/145.txt"))
+                System.out.println();
             try
             {
                 scanner = new Scanner(file);
@@ -55,6 +57,9 @@ public class ChangeToFeature
                     System.out.println(i+"行");
                     System.out.println(strLine);
                     i++;
+
+//                    String lineResult = dealLine1(strLine);
+//                    result+=lineResult+"\n";
                     String lineResult = dealLine(strLine);
                     fileWriter.write("#SENT_BEG#\tbegin\tOUT"+"\n"+lineResult+"#SENT_END#\tend\tOUT"+"\n"+"\n");
                     System.out.println(lineResult);
@@ -65,11 +70,37 @@ public class ChangeToFeature
                 e.printStackTrace();
             }
             scanner.close();
+//            FileWriter fileWriter = new FileWriter(new File(filePath));
+//            fileWriter.write(result);
+//            fileWriter.flush();
+//            fileWriter.close();
         }
         fileWriter.flush();
         fileWriter.close();
     }
 
+    public static String dealLine1(String line)
+    {
+        String result = "";
+        if(line.equals(result))
+            return result;
+        String biaozhu="#CS#";
+        String[] lineSpaceSplit = line.split("\t");
+        boolean outTag = true;
+        String strBiaoZhu = null;
+        //标注是否为OUT的标志，为true则为OUT。
+        for (String splitedStr : lineSpaceSplit)
+        {
+            String[] slashSplit = splitedStr.split(sep);
+            if(slashSplit[1].equals("w")&&slashSplit[0].equals("。"))
+                System.out.println();
+            if(slashSplit[1].equals("w")&&(slashSplit[0].equals("。")||slashSplit[0].equals("；")))
+                splitedStr=biaozhu+splitedStr+biaozhu;
+
+            result+=splitedStr+"\t";
+        }
+        return result;
+    }
     /*
     处理每一行
     #SENT_BEG#/begin 拟/v #TIME#16/m :/w 30/m#TIME# 送/v OR/nx 行/ng #STYL#腹腔镜/n#STYL# l/nx #OPER#阑尾/n 切除/v 术/ng#OPER#
@@ -78,7 +109,8 @@ public class ChangeToFeature
     public static String dealLine(String line)
     {
         String result = "";
-        String[] lineSpaceSplit = line.split(" ");
+        line=line.replaceAll(" ","\t");
+        String[] lineSpaceSplit = line.split("\t");
         boolean outTag = true;
         String strBiaoZhu = null;
         //标注是否为OUT的标志，为true则为OUT。
