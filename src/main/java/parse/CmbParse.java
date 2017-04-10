@@ -40,12 +40,9 @@ public class CmbParse
 	public static String nullity[] = new String[]{"抄送","结论抄送"
 	};
 
-<<<<<<< HEAD
 
 	public static String noises[] = new String[]{"担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
-=======
-	public static String noises[] = new String[]{"经审议","担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
->>>>>>> xx
+
 
 //	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
 
@@ -55,10 +52,7 @@ public class CmbParse
 	private String url = null;
 
     public CmbParse(CmbConfig cmbConfig) {
-<<<<<<< HEAD
-//		Predefine.HANLP_PROPERTIES_PATH = "/home/hadoop/wnd/ml/cmb/hanlp.properties";
-=======
->>>>>>> xx
+
 		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
@@ -67,22 +61,12 @@ public class CmbParse
 			e.printStackTrace();
 		}
 		url = cmbConfig.url;
-<<<<<<< HEAD
-//		url= "";//测试使用 记得注释
-=======
->>>>>>> xx
 
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
-<<<<<<< HEAD
 
-//            scanner = new Scanner(new File("/home/hadoop/wnd/usr/cmb/learnModel/ruleFile"));
 			scanner = new Scanner(new File(cmbConfig.ruleFile));
-
-=======
-			scanner = new Scanner(new File(cmbConfig.ruleFile));
->>>>>>> xx
 			while (scanner.hasNext()) {
 				String ruleStr = scanner.nextLine();
 				if (ruleStr != null && ruleStr.length() < 2) {
@@ -108,10 +92,6 @@ public class CmbParse
 	App调用入口
 	 */
 	public List<String> parse(String text) {
-<<<<<<< HEAD
-
-=======
->>>>>>> xx
 
 		text = cleanNoise(text);
 		// 数据预处理
