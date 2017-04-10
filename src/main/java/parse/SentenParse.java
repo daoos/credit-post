@@ -19,7 +19,7 @@ public class SentenParse {
 
     public SentenParse(CmbConfig cmbConfig) {
         recCS = new CrfppRecognition(cmbConfig.cmbSenten);
-//        recCS = new CrfppRecognition("/home/star/下载/dictionary/cmbSenten.crfpp");
+//        recCS = new CrfppRecognition("/home/hadoop/wnd/usr/cmb/learnModel/cmbSenten.crfpp");
 
     }
 

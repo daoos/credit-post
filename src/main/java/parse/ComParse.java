@@ -30,7 +30,7 @@ public class ComParse {
 
     public ComParse(CmbConfig config) throws FileNotFoundException {
         recCom = new CrfppRecognition(config.cmbCom);
-//        recCom = new CrfppRecognition("/home/star/下载/dictionary/cmbCom.crfpp");
+//        recCom = new CrfppRecognition("/home/hadoop/wnd/usr/cmb/learnModel/cmbCom.crfpp");
 
     }
 
@@ -50,7 +50,7 @@ public class ComParse {
         recCom.addTerms(termList);
 
         List<RichTerm> richTermList = recCom.parse();
-//		log.info("标注结果:"+richTermList);
+		log.info("标注结果:"+richTermList);
         StringBuffer sb = new StringBuffer();
         int offset = 0;
         for (RichTerm richTerm : richTermList) {
