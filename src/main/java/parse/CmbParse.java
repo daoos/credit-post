@@ -122,13 +122,8 @@ public class CmbParse
 			// 成分句子融合
 
             sentenceTerms=shortSentence(sentenceTerms);
-            //长句化短句
+            //长句化短句以及补充缺省
 
-            sentenceTerms=addedDefault(sentenceTerms);
-			//补充缺省
-
-//
-			// sentenceTerms预处理
 
 			List<String> inference = inference(sentenceTerms);
 			// 处理每一句
@@ -152,8 +147,15 @@ public class CmbParse
             SentenceTerm sentenceTerm = sentenceTerms.get(i);
             String sentence = sentenceTerm.getSentence();
             int offset=sentenceTerm.getOffset();
-
-            if(sentence.contains("，")||sentence.contains("。")||sentence.contains("；")){
+            boolean hasCoFlag=false;
+			for(ComNerTerm comNerTerm:sentenceTerm.getComNerTermList()){//包含CO 长句不拆分哦
+				if(comNerTerm.typeStr.equals("CO")){
+					hasCoFlag=true;
+					break;
+				}
+			}
+            if(!hasCoFlag&&(sentence.contains("，")||sentence.contains("。")||sentence.contains("；"))){
+				List<SentenceTerm> tempTermList = new ArrayList<>();
                 String[] shortsentences=sentence.split("[，。；]");
                 List<ComNerTerm> comNerTermList = sentenceTerms.get(i).getComNerTermList();
 
@@ -164,7 +166,7 @@ public class CmbParse
                     boolean isEx=false;
                     for(ComNerTerm comNerTerm:comNerTermList){
                         if(shortsentences[j].contains(comNerTerm.word)&&(offset+sentenceLength>comNerTerm.offset)){
-                            if(comNerTerm.typeStr.equals("EX")&&j>0&&sTermList.size()>1){
+                            if(comNerTerm.typeStr.equals("EX")&&j>0&&tempTermList.size()>1){
                                 isEx=true;
                             }
                             comNerTermArrayList.add(comNerTerm);
@@ -183,17 +185,20 @@ public class CmbParse
                         comNerTermList.remove(m);
                     }
                     if(isEx) {
-                        SentenceTerm sentenceTerm1=sTermList.get(sTermList.size()-1);
+                        SentenceTerm sentenceTerm1=tempTermList.get(tempTermList.size()-1);
                         sentenceTerm1.getComNerTermList().addAll(comNerTermArrayList);
                         sentenceTerm1.setSentence(sentenceTerm1.getSentence()+"，"+shortsentences[j]);
                     }
                     else {
                         SentenceTerm sentenceTerm1=new SentenceTerm(shortsentences[j], comNerTermArrayList,offset);
                         offset+= sentenceLength+1;
-                        sTermList.add(sentenceTerm1);
+						tempTermList.add(sentenceTerm1);
                     }
 
                 }
+				tempTermList=addedDefault(sentenceTerms);
+				//补充缺省
+				sTermList.addAll(tempTermList);
             }else {
                 sTermList.add(sentenceTerm);
             }
