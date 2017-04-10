@@ -59,22 +59,22 @@ public class CmbParse
 	private String url = null;
 
     public CmbParse(CmbConfig cmbConfig) {
-		Predefine.HANLP_PROPERTIES_PATH = "/home/hadoop/wnd/ml/cmb/hanlp.properties";
-//		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
+//		Predefine.HANLP_PROPERTIES_PATH = "/home/hadoop/wnd/ml/cmb/hanlp.properties";
+		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
 			sentenParse = new SentenParse(cmbConfig);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-	//	url = cmbConfig.url;
-		url= "";//测试使用 记得注释
+		url = cmbConfig.url;
+//		url= "";//测试使用 记得注释
 
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
 //			scanner = new Scanner(new File(cmbConfig.ruleFile));
-			scanner = new Scanner(new File("/home/hadoop/wnd/usr/cmb/learnModel/ruleFile"));
+			scanner = new Scanner(new File("/home/star/下载/dictionary/ruleFile"));
 			while (scanner.hasNext()) {
 				String ruleStr = scanner.nextLine();
 				if (ruleStr != null && ruleStr.length() < 2) {

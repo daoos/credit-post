@@ -1,16 +1,16 @@
 server:
   applicationConnectors:
   - type: http
-    port: 9009
+    port: 22222
   adminConnectors:
   - type: http
     port: 9008
 
 cmb:
-    hanlp: /home/hadoop/wnd/ml/cmb/hanlp.properties
-    cmbSenten: /home/hadoop/wnd/usr/cmb/learnModel/cmbSenten.crfpp
-    cmbCom: /home/hadoop/wnd/usr/cmb/learnModel/cmbCom.crfpp
-    ruleFile: /home/hadoop/wnd/usr/cmb/learnModel/ruleFile
+    hanlp: /home/star/下载/dictionary/hanlp.properties
+    cmbSenten: /home/star/下载/dictionary/cmbSenten.crfpp
+    cmbCom: /home/star/下载/dictionary/cmbCom.crfpp
+    ruleFile: /home/star/下载/dictionary/ruleFile
     url: http://0.0.0.0:5002/relation
 
 
