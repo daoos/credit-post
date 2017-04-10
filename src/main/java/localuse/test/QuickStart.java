@@ -170,7 +170,7 @@ public class QuickStart {
                 // 招行授信报告测试
 //                String url = "http://218.77.58.173:23333/api/cmb";
 //                String url = "http://218.77.58.167:5005/api/abb";
-                String url = "http://0.0.0.0:9009/api/cmb"; // 218.77.58.173
+                String url = "http://0.0.0.0:22222/api/cmb"; // 218.77.58.173
 
                 int tag = 1;
 

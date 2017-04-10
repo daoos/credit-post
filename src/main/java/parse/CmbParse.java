@@ -192,7 +192,7 @@ public class CmbParse
                     }
 
                 }
-				tempTermList=addedDefault(sentenceTerms);
+				tempTermList=addedDefault(tempTermList);
 				//补充缺省
 				sTermList.addAll(tempTermList);
             }else {
