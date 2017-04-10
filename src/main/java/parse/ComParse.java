@@ -29,9 +29,13 @@ public class ComParse {
     public static String comVector[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
 
     public ComParse(CmbConfig config) throws FileNotFoundException {
+<<<<<<< HEAD
         recCom = new CrfppRecognition(config.cmbCom);
 //        recCom = new CrfppRecognition("/home/hadoop/wnd/usr/cmb/learnModel/cmbCom.crfpp");
+=======
+>>>>>>> xx
 
+        recCom = new CrfppRecognition(config.cmbCom);
     }
 
     /*

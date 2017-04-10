@@ -40,8 +40,12 @@ public class CmbParse
 	public static String nullity[] = new String[]{"抄送","结论抄送"
 	};
 
+<<<<<<< HEAD
 
 	public static String noises[] = new String[]{"担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
+=======
+	public static String noises[] = new String[]{"经审议","担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
+>>>>>>> xx
 
 //	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
 
@@ -51,7 +55,10 @@ public class CmbParse
 	private String url = null;
 
     public CmbParse(CmbConfig cmbConfig) {
+<<<<<<< HEAD
 //		Predefine.HANLP_PROPERTIES_PATH = "/home/hadoop/wnd/ml/cmb/hanlp.properties";
+=======
+>>>>>>> xx
 		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
@@ -60,15 +67,22 @@ public class CmbParse
 			e.printStackTrace();
 		}
 		url = cmbConfig.url;
+<<<<<<< HEAD
 //		url= "";//测试使用 记得注释
+=======
+>>>>>>> xx
 
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
+<<<<<<< HEAD
 
 //            scanner = new Scanner(new File("/home/hadoop/wnd/usr/cmb/learnModel/ruleFile"));
 			scanner = new Scanner(new File(cmbConfig.ruleFile));
 
+=======
+			scanner = new Scanner(new File(cmbConfig.ruleFile));
+>>>>>>> xx
 			while (scanner.hasNext()) {
 				String ruleStr = scanner.nextLine();
 				if (ruleStr != null && ruleStr.length() < 2) {
@@ -94,7 +108,10 @@ public class CmbParse
 	App调用入口
 	 */
 	public List<String> parse(String text) {
+<<<<<<< HEAD
 
+=======
+>>>>>>> xx
 
 		text = cleanNoise(text);
 		// 数据预处理
@@ -116,8 +133,6 @@ public class CmbParse
 				continue;
 			List<String> sentenList = sentenParse.sentenService(eachLine);
 			// 句子标注
-
-
 
 			List<SentenceTerm> sentenceTerms = comFuseSenten(sentenList, comNerTermList);
 			// 成分句子融合
@@ -411,10 +426,48 @@ public class CmbParse
 
 
 	/*
+	本地测试加载cmb.yaml配置文件
+	 */
+	public static CmbConfig loadConfig() {
+		Scanner scanner = null;
+		CmbConfig cmbConfig = new CmbConfig();
+		try {
+			scanner = new Scanner(new File("cmb.yaml"));
+			while (scanner.hasNext()) {
+				String strLine = scanner.nextLine();
+				if (strLine.contains("hanlp")) {
+					String[] hanlpSplit = strLine.split("hanlp: ");
+					cmbConfig.setHanlp(hanlpSplit[1]);
+				}
+				if (strLine.contains("cmbSenten")) {
+					String[] cmbSentenSplit = strLine.split("cmbSenten: ");
+					cmbConfig.setCmbSenten(cmbSentenSplit[1]);
+				}
+				if (strLine.contains("cmbCom")) {
+					String[] cmbComSplit = strLine.split("cmbCom: ");
+					cmbConfig.setCmbCom(cmbComSplit[1]);
+				}
+				if (strLine.contains("ruleFile")) {
+					String[] ruleFileSplit = strLine.split("ruleFile: ");
+					cmbConfig.setRuleFile(ruleFileSplit[1]);
+				}
+//				System.out.println(strLine);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			scanner.close();
+		}
+		return cmbConfig;
+	}
+
+
+	/*
 	本地测试多份文本
 	 */
 	public static void main(String[] args) throws IOException {
-		CmbParse cmbParse = new CmbParse(new CmbConfiguration().getCmb());
+		CmbConfig cmbConfig = loadConfig();
+		CmbParse cmbParse = new CmbParse(cmbConfig);
 		File dirInput = new File(args[0]);
 		File[] files = dirInput.listFiles();
 		for (File file: files) {
@@ -422,7 +475,6 @@ public class CmbParse
 
 			if(file.toString().endsWith("/25"))
 				System.out.println();
-
 
 //			FileWriter fileWriter = new FileWriter(file);
 

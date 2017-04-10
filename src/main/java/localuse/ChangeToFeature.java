@@ -14,8 +14,8 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hadoop/wnd/usr/cmb/280份授信报告红色部分句法分析/";
-    private static String out_file = "/home/hadoop/wnd/usr/cmb/learnModel/280cmbCom.crfpp";//280cmbCom.crfpp";
+    private static String train_file = "/home/hpre/program/cmb/cmbSenten/";
+    private static String out_file = "/home/hpre/program/cmb/model/280cmbSenten.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
     public static String biaoZhu[] = new String[]{"CS"};
@@ -29,6 +29,7 @@ public class ChangeToFeature
 
     {
         readWriter();
+
     }
     /*
     文件读写和写入

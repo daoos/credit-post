@@ -3,6 +3,10 @@
 *.swp
 *.pyc
 *.yaml
+<<<<<<< HEAD
+=======
+*.properties
+>>>>>>> xx
 
 /.idea/
 target/

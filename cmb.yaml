@@ -7,10 +7,17 @@ server:
     port: 9008
 
 cmb:
+<<<<<<< HEAD
     hanlp: /home/star/下载/dictionary/hanlp.properties
     cmbSenten: /home/star/下载/dictionary/cmbSenten.crfpp
     cmbCom: /home/star/下载/dictionary/cmbCom.crfpp
     ruleFile: /home/star/下载/dictionary/ruleFile
+=======
+    hanlp: /home/hpre/program/cmb/model/hanlp.properties
+    cmbSenten: /home/hpre/program/cmb/model/cmbSenten.crfpp
+    cmbCom: /home/hpre/program/cmb/model/cmbCom.crfpp
+    ruleFile: /home/hpre/program/cmb/model/ruleFile
+>>>>>>> xx
     url: http://0.0.0.0:5002/relation
 
 
