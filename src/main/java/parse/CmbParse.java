@@ -4,7 +4,6 @@ import bean.ComNerTerm;
 import bean.SentenceTerm;
 import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
-import conf.CmbConfiguration;
 import crfpp.CrfppRecognition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,7 +40,7 @@ public class CmbParse
 	};
 
 
-	public static String noises[] = new String[]{"担保条件","国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"};
+	public static String noises[] = new String[]{}; // "担保条件", "国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"
 
 
 //	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
@@ -117,13 +116,13 @@ public class CmbParse
 			List<SentenceTerm> sentenceTerms = comFuseSenten(sentenList, comNerTermList);
 			// 成分句子融合
 
-            sentenceTerms=shortSentence(sentenceTerms);
+			sentenceTerms =shortSentence(sentenceTerms);
             //长句化短句以及补充缺省
 
 
 			List<String> inference = inference(sentenceTerms);
 			// 处理每一句
-			for (String eachResult : inference) {
+				for (String eachResult : inference) {
 				outList.add(eachResult);
 			}
 		}
@@ -143,14 +142,14 @@ public class CmbParse
             SentenceTerm sentenceTerm = sentenceTerms.get(i);
             String sentence = sentenceTerm.getSentence();
             int offset=sentenceTerm.getOffset();
-            boolean hasCoFlag=false;
-			for(ComNerTerm comNerTerm:sentenceTerm.getComNerTermList()){//包含CO 长句不拆分哦
-				if(comNerTerm.typeStr.equals("CO")){
-					hasCoFlag=true;
+            boolean hasCoEXFlag=false;
+			for(ComNerTerm comNerTerm:sentenceTerm.getComNerTermList()){//包含CO EX 长句不拆分哦
+				if(comNerTerm.typeStr.equals("CO")||comNerTerm.typeStr.equals("EX")){
+					hasCoEXFlag=true;
 					break;
 				}
 			}
-            if(!hasCoFlag&&(sentence.contains("，")||sentence.contains("。")||sentence.contains("；"))){
+            if(!hasCoEXFlag&&(sentence.contains("，")||sentence.contains("。")||sentence.contains("；"))){
 				List<SentenceTerm> tempTermList = new ArrayList<>();
                 String[] shortsentences=sentence.split("[，。；]");
                 List<ComNerTerm> comNerTermList = sentenceTerms.get(i).getComNerTermList();
@@ -212,10 +211,10 @@ public class CmbParse
 	{
 		int useSentenceTermsNum=1;
         int changeNum=subscript;
-        int zhengfu=1;
+        int zhengfu=-1;
         boolean flag=true;
 		while(changeNum<sentenceTerms.size()&&flag){//钟摆循环
-            zhengfu=zhengfu*-1;
+         //   zhengfu=zhengfu*-1;//只前至搜索
             changeNum=changeNum+zhengfu*useSentenceTermsNum++;
             if(changeNum<0||changeNum>sentenceTerms.size()-1)
                 continue;
@@ -387,16 +386,22 @@ public class CmbParse
 		List<SentenceTerm> sTermList = new ArrayList<>();
 		int offset = 0;
 
-		for (String sentence : sentenList) {
+		for (int i=0;i<sentenList.size();i++) {
+			String sentence=sentenList.get(i);
 			List<ComNerTerm> cNerTermList = new ArrayList<>();
 			sentenceStart = sentenceEnd;
 			sentenceLength = sentence.length();
 			sentenceEnd = sentenceStart + sentenceLength + 1; // 句读时，丢失分句的标点符号（逗号，分号，句号等），需要长度+1
 			for (int j = comNerTermLocation; j < comNerTermList.size(); j++) {
 				ComNerTerm comNerTerm = comNerTermList.get(j);
-				if (comNerTerm.offset < sentenceEnd &&
-						comNerTerm.offset >= sentenceStart) {
+				if (comNerTerm.offset < sentenceEnd && comNerTerm.offset >= sentenceStart) {
 					cNerTermList.add(comNerTerm);
+					if(sentenceLength<comNerTerm.word.length()&&i+1<sentenList.size()){
+						sentence+=sentenList.get(i+1);
+						i++;
+						sentenceLength= sentence.length();
+						sentenceEnd=sentenceStart+sentenceLength+1;
+					}
 				}
 				else {
 					comNerTermLocation = j;
@@ -406,7 +411,38 @@ public class CmbParse
 			sTermList.add(new SentenceTerm(sentence, cNerTermList, offset));
 			offset += sentenceLength + 1;
 		}
-		return sTermList;
+
+
+		List<SentenceTerm> sTermListResult = new ArrayList<>();
+		//将只有EX与CO   分词成分与句子一样的时候 EX合并前一句，CO与后一句合并
+		for(int i=0;i<sTermList.size();i++){
+			SentenceTerm sentenceTerm = sTermList.get(i);
+			if(sentenceTerm.getComNerTermList().size()==1){
+				if(sentenceTerm.getComNerTermList().get(0).typeStr.equals("CO")&&i+1<sTermList.size()){
+					SentenceTerm sentenceTerm1 = sTermList.get(i + 1);
+					i++;
+					sentenceTerm.setSentence(sentenceTerm.getSentence()+"，"+sentenceTerm1.getSentence());
+					for(ComNerTerm comNerTerm:sentenceTerm1.getComNerTermList()){
+						sentenceTerm.getComNerTermList().add(comNerTerm);
+					}
+
+				}
+				else if(sentenceTerm.getComNerTermList().get(0).typeStr.equals("EX")&&i>0){
+					SentenceTerm sentenceTerm1 = sTermList.get(i - 1);
+					sentenceTerm.setSentence(sentenceTerm1.getSentence()+"，"+sentenceTerm.getSentence());
+					sentenceTerm.setOffset(sentenceTerm1.getOffset());
+					for(ComNerTerm comNerTerm:sentenceTerm.getComNerTermList()){
+						sentenceTerm1.getComNerTermList().add(comNerTerm);
+					}
+					sentenceTerm.setComNerTermList(sentenceTerm1.getComNerTermList());
+					sTermListResult.remove(sTermListResult.size()-1);
+				}
+			}
+			sTermListResult.add(sentenceTerm);
+		}
+		sTermList.clear();
+		sTermList=null;
+		return sTermListResult;
 	}
 
 
@@ -458,7 +494,7 @@ public class CmbParse
 		for (File file: files) {
 			System.out.println(file);
 
-			if(file.toString().endsWith("/25"))
+			if(file.toString().endsWith("/10.txt"))
 				System.out.println();
 
 //			FileWriter fileWriter = new FileWriter(file);
@@ -560,16 +596,19 @@ public class CmbParse
 		}
 		List<ComNerTerm> newComNerTerm = new ArrayList<>();
 		StringBuffer sbCondition = new StringBuffer();
+		sbCondition.append("条件:" );
 		String sentence = sentenceTerm.getSentence();
 		int location = sentenceTerm.getOffset();
 		String[] symbolSplit = sentence.split("[,，.。;；:：、]");
 		for (int i = 0; i < symbolSplit.length; i++) {
 			int sentenEnd = location + symbolSplit[i].length();
 			boolean appendTag = false;
+			boolean coFlag=false;//是否条件成分被吸入sbCondition
 			for (ComNerTerm eachComNerTerm : comNerTermList) {
-				if (eachComNerTerm.typeStr.toString().equals("CO") && sbCondition.toString().equals("")) {
-					sbCondition.append("条件:" + eachComNerTerm.word);
+				if (eachComNerTerm.typeStr.toString().equals("CO") ) {//&& sbCondition.toString().equals("")
+					sbCondition.append(eachComNerTerm.word);
 					location = eachComNerTerm.offset + eachComNerTerm.word.length();
+					coFlag=true;
 					continue;
 				}
 				if (eachComNerTerm.offset < location) {
@@ -584,6 +623,13 @@ public class CmbParse
 				}
 				else if (eachComNerTerm.offset > sentenEnd) {
 					break;
+				}
+			}
+			for(int x=0;x<comNerTermList.size()&&coFlag;x++){
+				ComNerTerm eachComNerTerm=comNerTermList.get(x);
+				if(eachComNerTerm.typeStr.equals("CO")) {
+					comNerTermList.remove(eachComNerTerm);
+					x--;
 				}
 			}
 //			comNerTermList = newComNerTerm;
@@ -667,8 +713,43 @@ public class CmbParse
 				strRuleOut = strRuleOut.replace(EXOB, EXOB + "【" + EXWord + "】");
 //				System.out.println("--------------->>"+strRuleOut);
 			}
+
 			if (!ruleOut.toString().equals("")) {
 				in.add(strRuleOut);
+			}
+			else
+			{//处理含有VE或VC不含有AC且没有匹配到规则的 直接加要求
+                //处理不含AC只有OB 情况
+				boolean hasVEFlag=false;
+                boolean hasVCFlag=false;
+				boolean hasACFlag=false;
+                boolean hasOBFlag=false;
+				List<ComNerTerm> comNerTermList1 = sentenceTerm.getComNerTermList();
+				StringBuffer str = new StringBuffer();
+				for (ComNerTerm comNerTerm : comNerTermList1) {
+					if(comNerTerm.typeStr.equals("VE"))
+						hasVEFlag=true;
+					else
+						if(comNerTerm.typeStr.equals("AC"))
+							hasACFlag=true;
+					else
+                        if(comNerTerm.typeStr.equals("VC"))
+                            hasVCFlag=true;
+                        else
+                        if(comNerTerm.typeStr.equals("OB"))
+                            hasOBFlag=true;
+                    str.append(comNerTerm.word);
+				}
+				if((hasVEFlag||hasVCFlag)&&!hasACFlag) {
+
+					in.add("要求 "+str.toString());
+				}else
+				    if(!hasACFlag&&sentenceTerm.getSentence().contains("用途")&&hasOBFlag){
+
+                        in.add("用于 "+str.toString());
+                    }
+                str=null;
+
 			}
 		}
 		return in;
@@ -715,7 +796,7 @@ public class CmbParse
 		{
 			String doubleValues[] = new String[]{"OB", "NA"};
 			int count = 0;
-            System.out.println(sentenceTerm.getSentence());
+        //    System.out.println(sentenceTerm.getSentence());
 			while (true)
 			{
 
@@ -731,8 +812,8 @@ public class CmbParse
 							{
 
 								int l = comNerTermList.get(i + 1).offset - comNerTermList.get(i).offset;
-								int subStart = comNerTermList.get(i).offset - sentenceTerm.getOffset();  //第一个D的起始位置-句子的起始位置
-								String subSentence = sentenceTermList.get(q).getSentence().substring(subStart, subStart + l);
+								int subStart = comNerTermList.get(i).offset - sentenceTerm.getOffset();  //第一个NA的末尾位置
+								String subSentence = sentenceTermList.get(q).getSentence().substring(subStart+comNerTermList.get(i).word.length(), subStart+l);
 								String replaceStr = subSentence+comNerTermList.get(i+1).word;
 								if ((subSentence.contains("、")||subSentence.contains("或")||subSentence.contains("及")||subSentence.contains("与")))
 								{
