@@ -7,6 +7,7 @@ import conf.CmbConfig;
 import crfpp.CrfppRecognition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import tools.Levenshtein;
 
 import java.io.*;
 import java.util.*;
@@ -129,6 +130,10 @@ public class CmbParse
 
 		List<String> normalization = normalization(outList);
 		// 数据规范化
+
+		if(normalization.size()>1)
+			normalization=removeDuplicates(normalization);
+		//数据去重
 
 		return normalization;
 	}
@@ -331,7 +336,24 @@ public class CmbParse
                     for (int j = 0; j < comNerTermList.size() - 1; j++) {
                     	if(comNerTermList.get(j).typeStr.equals("NA")){
                     		//将NA周围未识别部分扩充进来
+							int currentlyWordOffset=comNerTermList.get(j).offset;
+							String currentlyWord=comNerTermList.get(j).word;
+							if(j>0){//获取之前的未定义成分
 
+								int undefineWordOffset=comNerTermList.get(j-1).word.length()+comNerTermList.get(j-1).offset;
+								String undefineWord=sentence.substring(undefineWordOffset-offset,currentlyWordOffset-offset);
+								if(undefineWord!=null&&!undefineWord.equals("")){
+									comNerTermList.get(j).setWord(undefineWord+currentlyWord);
+									comNerTermList.get(j).setOffset(undefineWordOffset);
+								}
+							}
+							if(j<comNerTermList.size() - 1){//获取之后的未定义成分
+
+								int nextWordOffset=comNerTermList.get(j+1).offset;
+								if(nextWordOffset-currentlyWordOffset>currentlyWord.length()) {
+									comNerTermList.get(j).setWord(currentlyWord+sentence.substring(currentlyWordOffset+currentlyWord.length()-offset,nextWordOffset-offset));
+								}
+							}
 							//前后NA合并
 							if ( (j<comNerTermList.size() - 1&&comNerTermList.get(j + 1).typeStr.equals("NA"))||(j>0&&comNerTermList.get(j-1).typeStr.equals("NA") )) {
 
@@ -367,6 +389,9 @@ public class CmbParse
 									if(j<comNerTermList.size()-1)
 										j++;
 								}
+							}
+							else{
+								newComNerTermList.add(comNerTermList.get(j));
 							}
 						}
                         else {
@@ -505,7 +530,7 @@ public class CmbParse
 		for (File file: files) {
 			System.out.println(file);
 
-			if(file.toString().endsWith("/972"))
+			if(file.toString().endsWith("/139"))
 				System.out.println();
 
 //			FileWriter fileWriter = new FileWriter(file);
@@ -1060,4 +1085,53 @@ public class CmbParse
 		return normalList;
 	}
 
+	//数据去重
+	public static List<String> removeDuplicates(List<String> outList) {
+		List<String> normalList = new ArrayList<>();
+		int[][] charSimilar=new int[outList.size()][outList.size()];
+
+		for (int x=0;x<outList.size()-1;x++) {
+			String eachLine=outList.get(x);
+			for(int i=0;i<outList.size()-1;i++){
+				if(!outList.get(i).equals(eachLine)){
+					int diffLocation=Levenshtein.getCharLocation(eachLine,outList.get(i));
+					if(diffLocation>Math.min(eachLine.length(),outList.get(i).length())-1){//不同的位置大于较小的长度，表示包含
+						charSimilar[x][i]=1;
+
+					}
+					else {
+						String diffstr1=eachLine.substring(diffLocation,eachLine.length());
+						String diffstr2=outList.get(i).substring(diffLocation,outList.get(i).length());
+						Levenshtein lt = new Levenshtein();
+						if(lt.getSimilarityRatio(diffstr1, diffstr2)>0.7){//剩余部分的相似度大于0.8，判断为相同句子
+							charSimilar[x][i]=1;
+						}
+					}
+				}
+			}
+		}
+
+		int [] needRemove=new int[outList.size()];
+		for(int x=0;x<outList.size()-1;x++){
+			for(int y=0;y<outList.size()-1;y++){
+				if(charSimilar[x][y]==1){
+					if(outList.get(x).length()>outList.get(y).length()){
+						charSimilar[y][x]=0;
+						needRemove[y]=1;
+					}
+					else{
+						charSimilar[x][y]=0;
+						needRemove[x]=1;
+					}
+
+				}
+			}
+		}
+		for(int i=0;i<needRemove.length;i++){
+			if(needRemove[i]==0){
+				normalList.add(outList.get(i));
+			}
+		}
+		return normalList;
+	}
 }

@@ -17,6 +17,32 @@ public class ComNerTerm implements Serializable
     {
     }
 
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public String getTypeStr() {
+
+        return typeStr;
+    }
+
+    public void setTypeStr(String typeStr) {
+        this.typeStr = typeStr;
+    }
+
+    public String getWord() {
+
+        return word;
+    }
+
+    public void setWord(String word) {
+        this.word = word;
+    }
+
     public ComNerTerm(String typeStr, String word)
     {
         this.typeStr = typeStr;
