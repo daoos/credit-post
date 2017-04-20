@@ -214,7 +214,7 @@ public class CmbParse
         int zhengfu=-1;
         boolean flag=true;
 		while(changeNum<sentenceTerms.size()&&flag){//钟摆循环
-         //   zhengfu=zhengfu*-1;//只前至搜索
+         //   zhengfu=zhengfu*-1;//注销只前至搜索
             changeNum=changeNum+zhengfu*useSentenceTermsNum++;
             if(changeNum<0||changeNum>sentenceTerms.size()-1)
                 continue;
@@ -226,6 +226,7 @@ public class CmbParse
 				List<ComNerTerm> newComNerTermList=sentenceTerm.getComNerTermList();
 				if(newComNerTermList.get(i).typeStr.equals(defaultType)) {//匹配所需元组
                     ComNerTerm comNerTerm = newComNerTermList.get(i);//所需要的元组
+
 
                     if(i>0&&newComNerTermList.get(i-1).typeStr.equals("AD")) {//所需为AC,前面带了AD的话，带上AD一起
                         comNerTerm=new ComNerTerm(newComNerTermList.get(i-1).word+comNerTerm.word,comNerTerm.typeStr,newComNerTermList.get(i-1).offset);
@@ -280,13 +281,16 @@ public class CmbParse
             for(int j=0;j<annotatesBoolean.length;j++){//初始化
                 annotatesBoolean[j]=false;
             }
-
+			boolean hasADFlag=false;
 			for (int j = 0; j < comNerTermList.size(); j++){
 				for(int m=0;m<annotates.length;m++) {
 					if(comNerTermList.get(j).typeStr.equals(annotates[m])){
 						annotatesBoolean[m]=true;
 						break;
 					}
+				}
+				if(comNerTermList.get(j).typeStr.equals("AD")){
+					hasADFlag=true;
 				}
 			}
 
@@ -299,9 +303,12 @@ public class CmbParse
 			//假如AO OB都缺  就先不处理
 			 if(flagNum!=annotatesBoolean.length)
 			for(int j=0;j<annotatesBoolean.length;j++) {
-				if(!annotatesBoolean[j]){
+				if(!annotatesBoolean[j]){//
+					System.out.println(sentenceTerms.get(i));
 					//处理que省
 					//  sentenceTerms i annotates[j]返回新的 newcomNerTermList
+					if(!annotatesBoolean[0]&&hasADFlag)//有OB少AC 但是短句有AD 情况不做que省处理
+						continue;
                     sentenceTerms=dealDefault(sentenceTerms,i,annotates[j]);
 				}
 			}
@@ -322,42 +329,46 @@ public class CmbParse
                 List<ComNerTerm> newComNerTermList = new ArrayList<>();
 
                     for (int j = 0; j < comNerTermList.size() - 1; j++) {
-                        if ((comNerTermList.get(j).typeStr.equals("NA") && comNerTermList.get(j + 1).typeStr.equals("NA"))||
-                                (j>0&&comNerTermList.get(j-1).typeStr.equals("NA") && comNerTermList.get(j).typeStr.equals("NA"))) {
+                    	if(comNerTermList.get(j).typeStr.equals("NA")){
+                    		//将NA周围未识别部分扩充进来
 
-    //					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length()-comNerTermList.get(0).offset;
-    //					int strEnd = comNerTermList.get(j + 1).offset-comNerTermList.get(0).offset;
+							//前后NA合并
+							if ( (j<comNerTermList.size() - 1&&comNerTermList.get(j + 1).typeStr.equals("NA"))||(j>0&&comNerTermList.get(j-1).typeStr.equals("NA") )) {
 
-                            int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length() - offset;
-                            int strEnd = comNerTermList.get(j + 1).offset - offset;
+		//					int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length()-comNerTermList.get(0).offset;
+		//					int strEnd = comNerTermList.get(j + 1).offset-comNerTermList.get(0).offset;
 
-                            String str = sentence.substring(strStart, strEnd);
-    //					System.out.println(str);
-                            String andWord[] = new String[]{"与", "或", "、", "及"};
-                            boolean andTag = false;
-                            for (String eachAndWord : andWord) {
-                                if (str.contains(eachAndWord))
-                                    andTag = true;
-                            }
-                            if (!andTag) {
-                                ComNerTerm newComNerTerm=null;
-                                if(newComNerTermList.size()>0&&newComNerTermList.get(newComNerTermList.size()-1).typeStr.equals("NA")){
+								int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length() - offset;
+								int strEnd = comNerTermList.get(j + 1).offset - offset;
 
-                                    newComNerTerm=newComNerTermList.get(newComNerTermList.size()-1);
-                                    newComNerTermList.remove(newComNerTermList.size()-1);
-                                    newComNerTerm.word = newComNerTerm.word + comNerTermList.get(j).word;
-                                }else{
-                                    newComNerTerm = new ComNerTerm();
-                                    newComNerTerm.typeStr = "NA";
-                                    newComNerTerm.offset = comNerTermList.get(j).offset;
-                                    newComNerTerm.word = comNerTermList.get(j).word + comNerTermList.get(j + 1).word;
-                                }
+								String str = sentence.substring(strStart, strEnd);
+		//					System.out.println(str);
+								String andWord[] = new String[]{"与", "或", "、", "及"};
+								boolean andTag = false;
+								for (String eachAndWord : andWord) {
+									if (str.contains(eachAndWord))
+										andTag = true;
+								}
+								if (!andTag) {
+									ComNerTerm newComNerTerm=null;
+									if(newComNerTermList.size()>0&&newComNerTermList.get(newComNerTermList.size()-1).typeStr.equals("NA")){
 
-                                newComNerTermList.add(newComNerTerm);
-                                if(j<comNerTermList.size()-1)
-                                    j++;
-                            }
-                        }
+										newComNerTerm=newComNerTermList.get(newComNerTermList.size()-1);
+										newComNerTermList.remove(newComNerTermList.size()-1);
+										newComNerTerm.word = newComNerTerm.word + comNerTermList.get(j).word;
+									}else{
+										newComNerTerm = new ComNerTerm();
+										newComNerTerm.typeStr = "NA";
+										newComNerTerm.offset = comNerTermList.get(j).offset;
+										newComNerTerm.word = comNerTermList.get(j).word + comNerTermList.get(j + 1).word;
+									}
+
+									newComNerTermList.add(newComNerTerm);
+									if(j<comNerTermList.size()-1)
+										j++;
+								}
+							}
+						}
                         else {
                             newComNerTermList.add(comNerTermList.get(j));
                         }
@@ -494,7 +505,7 @@ public class CmbParse
 		for (File file: files) {
 			System.out.println(file);
 
-			if(file.toString().endsWith("/10.txt"))
+			if(file.toString().endsWith("/972"))
 				System.out.println();
 
 //			FileWriter fileWriter = new FileWriter(file);
@@ -506,7 +517,7 @@ public class CmbParse
 					String strLine = scanner.nextLine();
 					List<String> inference = cmbParse.parse(strLine);
 					for (String eachResult : inference) {
-						System.out.println("eachResult:\t"+eachResult);
+					//	System.out.println("eachResult:\t"+eachResult);
 					}
 				}
 			} catch (FileNotFoundException e) {
@@ -534,6 +545,8 @@ public class CmbParse
 		text = text.replaceAll("\\(","（");
 		text = text.replaceAll("\\)","）");
 
+		text = text.replaceAll("\t","");
+		text = text.replaceAll(" ","");
 		boolean remove = false;
 
 		String[] lineSplit = text.split("\n");
@@ -566,6 +579,7 @@ public class CmbParse
 				}
 
 			}
+
 		}
 //		System.out.println(text);
 
@@ -668,7 +682,17 @@ public class CmbParse
 			List<ComNerTerm> EXComNerTermList = new ArrayList<>();
 			String EXSentence = sentence;
 			int EXLength = 0;
+
+			boolean hasAC=false;
+			boolean hasOB=false;
 			for (ComNerTerm eachComNerTerm : comNerTermList) {
+				if (eachComNerTerm.typeStr.toString().equals("AC")) {
+					hasAC = true;
+				}
+				if (eachComNerTerm.typeStr.toString().equals("OB")) {
+					hasOB = true;
+				}
+
 				if (eachComNerTerm.typeStr.toString().equals("CO")) {
 					tagCO = true;
 				}
@@ -694,6 +718,9 @@ public class CmbParse
 					EXOB = eachComNerTerm.word;
 				}
 			}
+//			if(hasAC&&hasOB){
+//				System.out.println("715 hasac+ob\t"+sentenceTerm);
+//			}
 			if (tagCO) {
 				sentenceTerm = new SentenceTerm(EXSentence, EXComNerTermList, offset);
 				ruleOut.append(dealCondition(sentenceTerm));

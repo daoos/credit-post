@@ -14,13 +14,13 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hpre/program/cmb/cmbSenten/";
-    private static String out_file = "/home/hpre/program/cmb/model/280cmbSenten.crfpp";//280cmbCom.crfpp";
+    private static String train_file = "/home/hadoop/wnd/usr/cmb/280份授信报告红色部分成分标注";
+    private static String out_file = "/home/hadoop/wnd/usr/cmb/learnModel/280cmbCom.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
-    public static String biaoZhu[] = new String[]{"CS"};
+//    public static String biaoZhu[] = new String[]{"CS"};
 //    public static String biaoZhu[] = new String[]{"O","T","D","P","C","S","N","A","Q","De"};
-//    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
+    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
     public static String sep = "_"; // "_"  "/"
 
 //    private static String train_file = "/home/hpre/else/文档/out/";
@@ -44,7 +44,7 @@ public class ChangeToFeature
         {
             file = new File(filePath);
 //            String result="";
-            if(file.toString().endsWith("/145.txt"))
+            if(file.toString().endsWith("/32.txt"))
                 System.out.println();
             try
             {
@@ -110,8 +110,8 @@ public class ChangeToFeature
     public static String dealLine(String line)
     {
         String result = "";
-        line=line.replaceAll(" ","\t");
-        String[] lineSpaceSplit = line.split("\t");
+  //      line=line.replaceAll(" ","\t");
+        String[] lineSpaceSplit = line.split(" ");
         boolean outTag = true;
         String strBiaoZhu = null;
         //标注是否为OUT的标志，为true则为OUT。
