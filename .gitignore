@@ -1,9 +1,7 @@
-
 *~
 *.swp
 *.pyc
 *.yaml
-cmb.yaml
 *.properties
 
 /.idea/
