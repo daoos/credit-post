@@ -2,9 +2,10 @@ package parse;
 
 import bean.ComNerTerm;
 import bean.SentenceTerm;
-import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
 import crfpp.CrfppRecognition;
+
+import com.hankcs.hanlp.utility.Predefine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import tools.Levenshtein;
@@ -23,33 +24,13 @@ import java.util.regex.Pattern;
 public class CmbParse
 {
 	private static Log log = LogFactory.getLog(CmbParse.class);
-	private static CrfppRecognition rec;
-	private static Map<String,String> ruleMap = null;
 
 	public static Pattern tipPattern = Pattern.compile("（\\d{1,2}）|\\d{1,2}）|\\d{1,2}");
-
-//	public static String nullity[] = new String[]{"经审议","授信主体","授信币种及金额","业务品种","授信期限",
-//			"价格条件", "还款条件","担保条件","分期还款","利率","还款方式","担保方式","同意","附原审批意见","发放要求",
-//			"小计","备用额度","合计", "注：","还款安排","编号","放款安排","保证条件","额度项","提用方式","额度启用条件",
-//			"使用要求", "启用要求","预留额度"," 成员企业名单","还款计划","借款人","信托金额","币种金额","额度内容",
-//			"额度期限", "增信方式","还款来源","分期还款","分行审批意见","保函受益人","费率","被担保人","贷款利率",
-//
-//			"建议","提款进度安排及相应条件","主要承诺事项","抄送","结论抄送"
-//	};
-
-	public static String nullity[] = new String[]{"抄送","结论抄送"
-	};
-
-
-	public static String noises[] = new String[]{}; // "担保条件", "国内保理部分","具体授信主体","前提条件","保理业务要求","主要承若事项","鉴于"
-
-
-//	public static String specialSenten[] = new String[]{"若","如果","如","一旦","待","超过","在。。之前","存在变数"};
-
     public static String annotates[] =new String[]{"AC","OB"};//缺省成分补充
+
 	private ComParse comParse = null;
 	private SentenParse sentenParse = null;
-	private String url = null;
+	private static Map<String,String> ruleMap = null;
 
     public CmbParse(CmbConfig cmbConfig) {
 
@@ -60,7 +41,6 @@ public class CmbParse
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		url = cmbConfig.url;
 
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
@@ -93,24 +73,19 @@ public class CmbParse
 	 */
 	public List<String> parse(String text) {
 
-		text = cleanNoise(text);
-		// 数据预处理
-
 		List<String> outList = new ArrayList<>();
-		if (text.equals("")) {
-			return outList;
-		}
 
 		for (String eachLine : text.split("\n")) {
-			eachLine = eachLine.replaceAll(" ","");
 
 			if (eachLine.length() < 2)
 				continue;
 
 			List<ComNerTerm> comNerTermList = comParse.comService(eachLine);
 			// 成分标注
+
 			if (comNerTermList.size() == 0)
 				continue;
+
 			List<String> sentenList = sentenParse.sentenService(eachLine);
 			// 句子标注
 
@@ -119,7 +94,6 @@ public class CmbParse
 
 			sentenceTerms =shortSentence(sentenceTerms);
             //长句化短句以及补充缺省
-
 
 			List<String> inference = inference(sentenceTerms);
 			// 处理每一句
@@ -132,7 +106,7 @@ public class CmbParse
 		// 数据规范化
 
 		if(normalization.size()>1)
-			normalization=removeDuplicates(normalization);
+			normalization = removeDuplicates(normalization);
 		//数据去重
 
 		return normalization;
@@ -148,7 +122,7 @@ public class CmbParse
             String sentence = sentenceTerm.getSentence();
             int offset=sentenceTerm.getOffset();
             boolean hasCoEXFlag=false;
-			for(ComNerTerm comNerTerm:sentenceTerm.getComNerTermList()){//包含CO EX 长句不拆分哦
+			for(ComNerTerm comNerTerm:sentenceTerm.getComNerTermList()){//包含CO EX 长句不拆分
 				if(comNerTerm.typeStr.equals("CO")||comNerTerm.typeStr.equals("EX")){
 					hasCoEXFlag=true;
 					break;
@@ -205,7 +179,6 @@ public class CmbParse
 
         }
         sentenceTerms.clear();
-        sentenceTerms=null;
         return sTermList;
     }
 
@@ -557,73 +530,6 @@ public class CmbParse
 	}
 
 
-
-	/*
-	预处理  主要删除空格，将英文符号转中文符号，去除一些黑色部分
-	 */
-	public static String cleanNoise(String text) {
-		if (text == null || (text != null && text.length() < 2)) {
-			return "";
-		}
-
-		text = text.replaceAll(" ","");
-		text = text.replaceAll("\\(","（");
-		text = text.replaceAll("\\)","）");
-
-		text = text.replaceAll("\t","");
-		text = text.replaceAll(" ","");
-		boolean remove = false;
-
-		String[] lineSplit = text.split("\n");
-		for (int i = 0; i < lineSplit.length; i++) {
-			for (String noise : noises) {
-				if (lineSplit[i].startsWith(noise)) {
-					remove = true;
-					break;
-				}
-			}
-
-			if (remove) {
-				StringBuffer sb = new StringBuffer();
-				sb.append(lineSplit[i]);
-				while (true) {
-					i++;
-					if (i == lineSplit.length ) {
-						text = text.replace(sb.toString(), "");
-						break;
-					}
-					Matcher m = tipPattern.matcher(lineSplit[i]);
-					if (m.find()) {
-						sb.append("\n"+lineSplit[i]);
-					}
-					else {
-						text = text.replace(sb.toString(), "");
-						remove = false;
-						break;
-					}
-				}
-
-			}
-
-		}
-//		System.out.println(text);
-
-		String[] lineSplit2 = text.split("\n");
-		for (String eachLine : lineSplit2) {
-			StringBuffer sb = new StringBuffer();
-			for (String eachNuilty : nullity) { //无效句去除
-				if (eachLine.startsWith(eachNuilty)) {
-					sb.append("\n"+eachLine);
-					break;
-				}
-			}
-			text = text.replace(sb.toString(), "");
-		}
-
-		return text;
-	}
-
-
 	/*
 	处理条件句
 	 */
@@ -671,7 +577,6 @@ public class CmbParse
 					x--;
 				}
 			}
-//			comNerTermList = newComNerTerm;
 			if (appendTag) {
 				sbAction.append(",");
 
@@ -748,7 +653,7 @@ public class CmbParse
 //			}
 			if (tagCO) {
 				sentenceTerm = new SentenceTerm(EXSentence, EXComNerTermList, offset);
-				ruleOut.append(dealCondition(sentenceTerm));
+				ruleOut.append(dealCondition(sentenceTerm)); // 处理条件句
 			}
 			else {
 				if (tagEX) {
@@ -1067,17 +972,23 @@ public class CmbParse
 		for (String eachOut : outList) {
 			String[] lineSplit = eachOut.split("\n");
 			for (String eachLine : lineSplit) {
+				if (eachLine.contains(" ")) {
+					String[] commaSplit = eachLine.split(" ");
+					if (commaSplit.length == 2) {
+						if (commaSplit[1].length() < 2){
+							continue; // 去除长度小于2的对象
+						}
+					}
+				}
 				if (!normalList.contains(eachLine)) {
 					if (eachLine.contains("，") && !eachLine.contains("【") && !eachLine.contains("条件")) {
 						String[] commaSplit = eachLine.split("，");
 						for (String eachCommaSplit : commaSplit) {
 							normalList.add(eachCommaSplit);
-//							System.out.println(eachCommaSplit);
 						}
 					}
 					else {
 						normalList.add(eachLine);
-//						System.out.println(eachLine);
 					}
 				}
 			}

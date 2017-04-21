@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static parse.CmbParse.cleanNoise;
 import static parse.CmbParse.normalization;
 /**
  * Created by hadoop on 17-4-5.
@@ -46,10 +45,6 @@ public class FindSentenError {
 
 
     public List<String> parse(String text) {
-
-
-        text = cleanNoise(text);
-        // 数据预处理
 
         List<String> outList = new ArrayList<>();
         if (text.equals("")) {
