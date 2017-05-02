@@ -9,6 +9,15 @@ public class CmbConfig {
     public String cmbCom;
     public String cmbSenten;
     public String url;
+    public String modelPath;
+
+    public String getModel() {
+        return modelPath;
+    }
+
+    public void setModel(String modelPath) {
+        this.modelPath = modelPath;
+    }
 
     public String getHanlp() {
         return hanlp;
