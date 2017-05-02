@@ -81,6 +81,7 @@ public class ComParse {
                 }
                 else if (richTerm.comTypeStr.equals(strCase + "_E")) {
                     sb.append(richTerm.word);
+
                     TermsList.add(new ComNerTerm(sb.toString(),strCase,offset));
                     offset += sb.length();
                     sb.delete(0, sb.length());
