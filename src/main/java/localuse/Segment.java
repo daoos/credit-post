@@ -15,8 +15,8 @@ public class Segment
 {
 
 
-	private static String input = "/home/hadoop/wnd/usr/cmb/4月27日工作/新增集合/";
-	private static String out = "/home/hadoop/wnd/usr/cmb/4月27日工作/新增标注/";
+	private static String input = "/home/hadoop/wnd/usr/cmb/5月2日工作/原句/";
+	private static String out = "/home/hadoop/wnd/usr/cmb/5月2日工作/成分标注/";
 
 //	public static String predicates[] = {"严控","了解","争取","做好","关注","分析","办妥","办理","加强","审查","审核","建立",
 //			"扩大","承诺","控制","提供","收集","明确","查询","核实","核查","检查","沟通","注意","监控","考虑","落实","要求",

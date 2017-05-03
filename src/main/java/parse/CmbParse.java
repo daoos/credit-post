@@ -71,12 +71,11 @@ public class CmbParse
 			scanner.close();
 		}
 	}
-	static  boolean hasrisk=false;
 	/*
 	App调用入口
 	 */
-	public List<String> parse(String text) {
-		hasrisk=false;
+	public synchronized 	List<String> parse(String text) {
+		boolean hasrisk=false;
 		List<String> outList = new ArrayList<>();
 		for (String eachLine : text.split("\n")) {
 			if(eachLine.contains("风险提示"))//用于对风险点识别的判断入口讲后文出现的有风险提示的句子且后去判断为识别的地方做风险点判断
@@ -96,7 +95,7 @@ public class CmbParse
 			sentenceTerms =shortSentence(sentenceTerms);
             //长句化短句以及补充缺省
 //            log.info("长句化短句以及补充缺省后"+sentenceTerms);
-			List<String> inference = inference(sentenceTerms);
+			List<String> inference = inference(sentenceTerms,hasrisk);
 			// 处理每一句
 			for (String eachResult : inference) {
 				outList.add(eachResult);
@@ -613,7 +612,7 @@ public class CmbParse
 	/*
 	将List集合中的每一个SentenceTerm分别处理
 	 */
-	public static List<String> inference(List<SentenceTerm> sentenceTermList) {
+	public static List<String> inference(List<SentenceTerm> sentenceTermList,boolean hasrisk) {
 		List<String> in = new ArrayList<>();
 		for (SentenceTerm sentenceTerm : sentenceTermList) {
 			StringBuffer ruleOut = new StringBuffer();
@@ -705,7 +704,7 @@ public class CmbParse
 							hasADFlag=true;
                     str.append(comNerTerm.word);
 				}
-				if((hasVEFlag||hasVCFlag)&&!hasACFlag) {
+				if((hasVEFlag||hasVCFlag)&&!hasACFlag&&hasOBFlag) {
 
 					in.add("要求 "+str.toString());
 				}else
