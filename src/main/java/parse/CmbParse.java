@@ -75,6 +75,7 @@ public class CmbParse
 	App调用入口
 	 */
 	public synchronized 	List<String> parse(String text) {
+		text=text.replace("\\(","）").replaceAll("\\)","）");//测试使用预处理修改至python部分
 		boolean hasrisk=false;
 		List<String> outList = new ArrayList<>();
 		for (String eachLine : text.split("\n")) {
@@ -517,7 +518,7 @@ public class CmbParse
 		for (File file: files) {
 			System.out.println(file);
 
-			if(file.toString().endsWith("/787"))
+			if(file.toString().endsWith("/172"))
 				System.out.println();
 
 //			FileWriter fileWriter = new FileWriter(file);
@@ -665,7 +666,7 @@ public class CmbParse
 				}
 				List<SentenceTerm> connect = connect(sentenceTerm);
                 List<SentenceTerm> preRet = preDeal(connect);
-				for (SentenceTerm eachSentenTerm : preRet) {
+				for (SentenceTerm eachSentenTerm : preRet) {//规则加载
 					ruleOut.append(inferenceInside(eachSentenTerm));
 				}
 			}
@@ -721,7 +722,7 @@ public class CmbParse
 						String result=riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
 						if(result!=null){
 							in.add(result);
-							System.out.println("result: " + result);
+						//	System.out.println("result: " + result);
 						}
 
 					}
@@ -749,6 +750,8 @@ public class CmbParse
 		if (!type.toString().equals("")) {
 //				System.out.println();
 		}
+		if(type.toString().equals("AC NA OB AD AC OB"))
+			System.out.println(typeAndWord);
 		String ruleOut = ruleRecursion(type.toString().trim(), typeAndWord, sb);
 		StringBuffer inside_out = new StringBuffer();
 		if (!ruleOut.equals("")) {
@@ -909,6 +912,7 @@ public class CmbParse
 //			if (trie.containsMatch(sentence))
 			{
 //				System.out.println("mining:"+mining);
+				sentence=sentence.replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]+\\){0,1}）{0,1}[\\.、]{0,1}","");
 				OpinionMining.State state = null;
 				try {
 					state = mining.expansion(sentence);
@@ -958,7 +962,6 @@ public class CmbParse
                 return sb.toString();
             }
 		}
-
 		String[] tabSplit = lineStr.split("\t");
 		String[] spaceSplit2 = tabSplit[1].split(" ");
 		String[] labelLocation = ruleOut.split("#");
@@ -1051,7 +1054,7 @@ public class CmbParse
 						String diffstr1=eachLine.substring(diffLocation,eachLine.length());
 						String diffstr2=outList.get(i).substring(diffLocation,outList.get(i).length());
 						Levenshtein lt = new Levenshtein();
-						if(lt.getSimilarityRatio(diffstr1, diffstr2)>0.68){//剩余部分的相似度大于，判断为相同句子
+						if(lt.getSimilarityRatio(diffstr1, diffstr2)>0.8001){//剩余部分的相似度大于，判断为相同句子
 							charSimilar[x][i]=1;
 						}
 					}
@@ -1063,7 +1066,7 @@ public class CmbParse
 		for(int x=0;x<outList.size()-1;x++){
 			for(int y=0;y<outList.size()-1;y++){
 				if(charSimilar[x][y]==1){
-					if(outList.get(x).length()>outList.get(y).length()){
+					if(outList.get(x).length()>=outList.get(y).length()){
 						charSimilar[y][x]=0;
 						needRemove[y]=1;
 					}

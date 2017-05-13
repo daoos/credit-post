@@ -109,8 +109,8 @@ public class Levenshtein {
 
     public static void main(String[] args) {
         Levenshtein lt = new Levenshtein();
-        String str = "申请人核心流动资产的及时回收";
-        String target = "申请人核心流动资";
+        String str = "申请人的订单变化情况";
+        String target = "担保人的订单变化情况";
         System.out.println("similarityRatio="
                 + lt.getSimilarityRatio(str, target));
         System.out.println("Location="

@@ -14,8 +14,8 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-    private static String train_file = "/home/hadoop/wnd/usr/cmb/280份授信报告红色部分成分标注";
-    private static String out_file = "/home/hadoop/wnd/usr/cmb/learnModel/280cmbCom.crfpp";//280cmbCom.crfpp";
+    private static String train_file = "/home/hadoop/wnd/usr/cmb/5月3日工作/cmbCom";
+    private static String out_file = "/home/hadoop/wnd/usr/cmb/5月13日工作/280cmbCom.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
 //    public static String biaoZhu[] = new String[]{"CS"};
@@ -44,7 +44,7 @@ public class ChangeToFeature
         {
             file = new File(filePath);
 //            String result="";
-            if(file.toString().endsWith("/32.txt"))
+            if(file.toString().endsWith("/63.txt"))
                 System.out.println();
             try
             {
