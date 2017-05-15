@@ -30,7 +30,7 @@ public class CmbParse
 
 	public static Pattern tipPattern = Pattern.compile("（\\d{1,2}）|\\d{1,2}）|\\d{1,2}");
     public static String annotates[] =new String[]{"AC","OB"};//缺省成分补充
-
+	public static String andWord[] = new String[]{"与", "或", "、", "及"};
 	private ComParse comParse = null;
 	private SentenParse sentenParse = null;
 	private static OpinionMining mining = null;
@@ -93,10 +93,10 @@ public class CmbParse
 			List<SentenceTerm> sentenceTerms = comFuseSenten(sentenList, comNerTermList);
 			// 成分句子融合
 //            log.info("成分句子融合后 "+sentenceTerms);
-			sentenceTerms =shortSentence(sentenceTerms);
+			List<SentenceTerm> shortSentenceTerms =shortSentence(sentenceTerms);
             //长句化短句以及补充缺省
 //            log.info("长句化短句以及补充缺省后"+sentenceTerms);
-			List<String> inference = inference(sentenceTerms,hasrisk);
+			List<String> inference = inference(shortSentenceTerms,hasrisk,sentenceTerms);
 			// 处理每一句
 			for (String eachResult : inference) {
 				outList.add(eachResult);
@@ -182,7 +182,6 @@ public class CmbParse
             }
 
         }
-        sentenceTerms.clear();
         return sTermList;
     }
 
@@ -303,14 +302,12 @@ public class CmbParse
 	sentenceTerms预处理	合并相同成分
 	 */
 	private static List<SentenceTerm> preDeal(List<SentenceTerm> sentenceTerms) {
-		String annotates[] = new String[]{"NA"};
 		List<SentenceTerm> newSentenceTerms = new ArrayList<>();
             for (int i = 0; i < sentenceTerms.size(); i++) {
                 List<ComNerTerm> comNerTermList = sentenceTerms.get(i).getComNerTermList();
                 int offset = sentenceTerms.get(i).getOffset();
                 String sentence = sentenceTerms.get(i).getSentence();
                 List<ComNerTerm> newComNerTermList = new ArrayList<>();
-
                     for (int j = 0; j < comNerTermList.size() - 1; j++) {
                     	if(comNerTermList.get(j).typeStr.equals("NA")){
                     		//将NA周围未识别部分扩充进来
@@ -335,7 +332,7 @@ public class CmbParse
 								int strStart = comNerTermList.get(j).offset + comNerTermList.get(j).word.length() - offset;
 								int strEnd = comNerTermList.get(j + 1).offset - offset;
 								String str = sentence.substring(strStart, strEnd);
-								String andWord[] = new String[]{"与", "或", "、", "及"};
+
 								boolean andTag = false;
 								for (String eachAndWord : andWord) {
 									if (str.contains(eachAndWord))
@@ -368,13 +365,11 @@ public class CmbParse
                         }
                     }
 
-                if (comNerTermList.size() >= 1)
-                    newComNerTermList.add(comNerTermList.get(comNerTermList.size() - 1));
+                if (comNerTermList.size() >= 1) {
+					newComNerTermList.add(comNerTermList.get(comNerTermList.size() - 1));
+				}
                 newSentenceTerms.add(new SentenceTerm(sentence, newComNerTermList, offset));
             }
-
-
-
 		return newSentenceTerms;
 	}
 
@@ -613,8 +608,17 @@ public class CmbParse
 	/*
 	将List集合中的每一个SentenceTerm分别处理
 	 */
-	public static List<String> inference(List<SentenceTerm> sentenceTermList,boolean hasrisk) {
+	public static List<String> inference(List<SentenceTerm> sentenceTermList,boolean hasrisk,List<SentenceTerm> longSentenceTerms) {
 		List<String> in = new ArrayList<>();
+		List<String>  longSentenceList=null;
+
+		if(hasrisk){
+			//将长句中句子部分组成list给予后面出现风险点获取，避免短句的效果不理想
+			longSentenceList =new ArrayList<>();
+			for(SentenceTerm longSentenceTerm:longSentenceTerms){
+				longSentenceList.add(longSentenceTerm.getSentence());
+			}
+		}
 		for (SentenceTerm sentenceTerm : sentenceTermList) {
 			StringBuffer ruleOut = new StringBuffer();
 			String sentence = sentenceTerm.getSentence();
@@ -720,9 +724,10 @@ public class CmbParse
 						// 还未识别的入风险点句法树识别风险点
 					//	System.out.println("进入risk：" + sentenceTerm.getSentence());
 						String result=riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
-						if(result!=null){
-							in.add(result);
-						//	System.out.println("result: " + result);
+						for(String longSentence:longSentenceList){
+							if(result!=null&&longSentence.contains(result)){
+								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}","").replace("_x000D_",""));
+							}
 						}
 
 					}
@@ -903,7 +908,7 @@ public class CmbParse
 	}
 	//做风险点判断是否有风险点
 	private static String riskPaser(String text)  {
-		String[] sentences = text.split("[!?！；。，？]");
+		String[] sentences = text.split("[!?！；。？]");
 		List<String> negtiveSentences = new ArrayList<String>();
 
 		OUT:
@@ -912,7 +917,7 @@ public class CmbParse
 //			if (trie.containsMatch(sentence))
 			{
 //				System.out.println("mining:"+mining);
-				sentence=sentence.replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]+\\){0,1}）{0,1}[\\.、]{0,1}","");
+				//sentence=sentence.replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]+\\){0,1}）{0,1}[\\.、]{0,1}","");
 				OpinionMining.State state = null;
 				try {
 					state = mining.expansion(sentence);
@@ -1023,15 +1028,16 @@ public class CmbParse
 					}
 				}
 				if (!normalList.contains(eachLine)) {
-					if (eachLine.contains("，") && !eachLine.contains("【") && !eachLine.contains("条件")) {
-						String[] commaSplit = eachLine.split("，");
-						for (String eachCommaSplit : commaSplit) {
-							normalList.add(eachCommaSplit);
-						}
-					}
-					else {
-						normalList.add(eachLine);
-					}
+					normalList.add(eachLine);
+//					if (eachLine.contains("，") && !eachLine.contains("【") && !eachLine.contains("条件")) {
+//						String[] commaSplit = eachLine.split("，");
+//						for (String eachCommaSplit : commaSplit) {
+//							normalList.add(eachCommaSplit);
+//						}
+//					}
+//					else {
+//						normalList.add(eachLine);
+//					}
 				}
 			}
 		}

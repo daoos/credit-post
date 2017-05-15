@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class Regextest {
     public static void main(String[] args) {
-        String s =
+        String s ="2014年，如果不将8290万元的财务费用资本化，则汇森煤业已是亏损运营；\n"+
                 "(一) 规范意见要素：\n" +
                 "1、发行人-中国文本集团有限公司\n" +
                 "2、业务品种-超短期融资券\n" +
@@ -36,7 +36,7 @@ public class Regextest {
         String[] sentences = s.split("[!?！；。，？\n]");
         List<String> negtiveSentences = new ArrayList<String>();
         for (String sentence: sentences) {
-            sentence=sentence.replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]+\\){0,1}）{0,1}[\\.、]{0,1}","");
+            sentence=sentence.replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}","");
             System.out.println(sentence);
         }
     }
