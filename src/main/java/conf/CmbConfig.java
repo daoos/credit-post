@@ -8,7 +8,6 @@ public class CmbConfig {
     public String ruleFile;
     public String cmbCom;
     public String cmbSenten;
-    public String url;
     public String modelPath;
 
     public String getModel() {
@@ -51,11 +50,4 @@ public class CmbConfig {
         this.cmbSenten = cmbSenten;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
 }

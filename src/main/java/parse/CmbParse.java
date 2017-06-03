@@ -513,7 +513,7 @@ public class CmbParse
 		for (File file: files) {
 			System.out.println(file);
 
-			if(file.toString().endsWith("/172"))
+			if(file.toString().endsWith("/73"))
 				System.out.println();
 
 //			FileWriter fileWriter = new FileWriter(file);
@@ -729,10 +729,8 @@ public class CmbParse
 								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}","").replace("_x000D_",""));
 							}
 						}
-
 					}
                 str=null;
-
 			}
 		}
 		return in;
@@ -755,8 +753,6 @@ public class CmbParse
 		if (!type.toString().equals("")) {
 //				System.out.println();
 		}
-		if(type.toString().equals("AC NA OB AD AC OB"))
-			System.out.println(typeAndWord);
 		String ruleOut = ruleRecursion(type.toString().trim(), typeAndWord, sb);
 		StringBuffer inside_out = new StringBuffer();
 		if (!ruleOut.equals("")) {
@@ -869,8 +865,6 @@ public class CmbParse
 						}
 					}
 				}
-
-
 				int t = 0;
 				for (SentenceTerm term : sentenceTermList) {
 					if (!hasDouble(term.getComNerTermList())) {
@@ -883,7 +877,6 @@ public class CmbParse
 				if (count>15)break;  //防止陷入死循环
 			}
 		}
-
 		return sentenceTermList;
 	}
 
@@ -910,7 +903,6 @@ public class CmbParse
 	private static String riskPaser(String text)  {
 		String[] sentences = text.split("[!?！；。？]");
 		List<String> negtiveSentences = new ArrayList<String>();
-
 		OUT:
 		for (String sentence: sentences) {
 //			System.out.println(trie.parseText(sentence));
@@ -925,7 +917,6 @@ public class CmbParse
 					e.printStackTrace();
 					continue;
 				}
-
 				switch (state) {
 					case negative:
 						negtiveSentences.add(sentence);
@@ -934,10 +925,8 @@ public class CmbParse
 				}
 			}
 		}
-
 		if (negtiveSentences.isEmpty())
 			return null;
-
 		return StringUtils.join(negtiveSentences.toArray(new String[0]), "\n");
 	}
 	/*
@@ -973,7 +962,6 @@ public class CmbParse
 		if (ruleOut.contains(",")) {
 			String[] ruleArray = labelLocation[0].split(",");
 			String[] locationArray = labelLocation[1].split(",");
-
 			for (int i = 0; i < locationArray.length; i++) {
 				StringBuffer lineStr2 = new StringBuffer();
 				String[] ss = locationArray[i].split(" ");
@@ -1011,8 +999,6 @@ public class CmbParse
 		}
 		return sb.toString();
 	}
-
-
 	// 数据规范化
 	public static List<String> normalization(List<String> outList) {
 		List<String> normalList = new ArrayList<>();
@@ -1067,7 +1053,6 @@ public class CmbParse
 				}
 			}
 		}
-
 		int [] needRemove=new int[outList.size()];
 		for(int x=0;x<outList.size()-1;x++){
 			for(int y=0;y<outList.size()-1;y++){
@@ -1089,7 +1074,44 @@ public class CmbParse
 				normalList.add(outList.get(i));
 			}
 		}
-
+		HashMap<String,Vector<String>> map= new HashMap();
+		for (String eachLine : normalList) {
+			if (eachLine.contains(" ")) {
+				String[] commaSplit = eachLine.split(" ");
+				if (commaSplit.length == 2) {
+					if(map.containsKey(commaSplit[0])){
+						Vector<String> tmp=map.get(commaSplit[0]);
+						tmp.add(commaSplit[1]);
+					}else{
+						Vector<String> tmp=new Vector<String>();
+						tmp.add(commaSplit[1]);
+						map.put(commaSplit[0],tmp);
+					}
+				}else{
+					map.put(commaSplit[0],null);
+				}
+			}
+		}
+		normalList.clear();
+		for (Map.Entry<String, Vector<String>> entry : map.entrySet()) {
+			//System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+			String key=entry.getKey();
+			Vector<String> value= entry.getValue();
+			if(value==null){
+				normalList.add(key);
+			}else
+				if(value.size()>1){
+					String obj="";
+					for(String one:value){
+						obj+=one+"&^%";
+					}
+					normalList.add(key+": "+obj.substring(0,obj.length()-3)	);
+				}else{
+				normalList.add(key+" "+value.get(0)	);
+				}
+		}
+		map.clear();
+		map=null;
 
 		return normalList;
 	}
