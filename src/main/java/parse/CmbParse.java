@@ -1,16 +1,16 @@
 package parse;
 
 import bean.ComNerTerm;
+import bean.ParagraphParamer;
 import bean.SentenceTerm;
 import conf.CmbConfig;
-import crfpp.CrfppRecognition;
+
 
 import com.hankcs.hanlp.utility.Predefine;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.ClientProtocolException;
 import tools.Levenshtein;
 
 import java.io.*;
@@ -76,13 +76,18 @@ public class CmbParse
 	 */
 	public synchronized 	List<String> parse(String text) {
 		text=text.replace("\\(","）").replaceAll("\\)","）");//测试使用预处理修改至python部分
-		boolean hasrisk=false;
+		ParagraphParamer paramer = new ParagraphParamer(text);
 		List<String> outList = new ArrayList<>();
 		for (String eachLine : text.split("\n")) {
-			if(eachLine.contains("风险提示"))//用于对风险点识别的判断入口讲后文出现的有风险提示的句子且后去判断为识别的地方做风险点判断
-				hasrisk=true;
 			if (eachLine.length() < 2)
 				continue;
+			//获取是否有段落层面的AC需要记录
+			if(paramer.getParagraghAC()==null) {
+				paramer.hasACDemon(eachLine);
+			}
+			else{
+				paramer.isSerialSentense(eachLine);
+			}
 
 			List<ComNerTerm> comNerTermList = comParse.comService(eachLine);
 			// 成分标注
@@ -96,7 +101,9 @@ public class CmbParse
 			List<SentenceTerm> shortSentenceTerms =shortSentence(sentenceTerms);
             //长句化短句以及补充缺省
 //            log.info("长句化短句以及补充缺省后"+sentenceTerms);
-			List<String> inference = inference(shortSentenceTerms,hasrisk,sentenceTerms);
+			System.out.println("原句：\t"+eachLine);
+			System.out.println("成分：\t"+shortSentenceTerms);
+			List<String> inference = inference(paramer,shortSentenceTerms,sentenceTerms);
 			// 处理每一句
 			for (String eachResult : inference) {
 				outList.add(eachResult);
@@ -110,6 +117,8 @@ public class CmbParse
 			normalization = removeDuplicates(normalization);
 		//数据去重
 //        log.info("java结果： " + normalization);
+		paramer=null;
+
 		return normalization;
 	}
 
@@ -313,14 +322,14 @@ public class CmbParse
                     		//将NA周围未识别部分扩充进来
 							int currentlyWordOffset=comNerTermList.get(j).offset;
 							String currentlyWord=comNerTermList.get(j).word;
-							if(j>0){//获取之前的未定义成分
-								int undefineWordOffset=comNerTermList.get(j-1).word.length()+comNerTermList.get(j-1).offset;
-								String undefineWord=sentence.substring(undefineWordOffset-offset,currentlyWordOffset-offset).replaceAll("[\\u3001\\u53ca\\u6216\\u4e0e\\u548c]","");//去掉未定义中的、及或与和
-								if(undefineWord!=null&&!undefineWord.equals("")){
-									comNerTermList.get(j).setWord(undefineWord+currentlyWord);
-									comNerTermList.get(j).setOffset(undefineWordOffset);
-								}
-							}
+//							if(j>0){//获取之前的未定义成分
+//								int undefineWordOffset=comNerTermList.get(j-1).word.length()+comNerTermList.get(j-1).offset;
+//								String undefineWord=sentence.substring(undefineWordOffset-offset,currentlyWordOffset-offset).replaceAll("[\\u3001\\u53ca\\u6216\\u4e0e\\u548c]","");//去掉未定义中的、及或与和
+//								if(undefineWord!=null&&!undefineWord.equals("")){
+//									comNerTermList.get(j).setWord(undefineWord+currentlyWord);
+//									comNerTermList.get(j).setOffset(undefineWordOffset);
+//								}
+//							}
 							if(j<comNerTermList.size() - 1){//获取之后的未定义成分
 								int nextWordOffset=comNerTermList.get(j+1).offset;
 								if(nextWordOffset-currentlyWordOffset>currentlyWord.length()) {
@@ -608,11 +617,11 @@ public class CmbParse
 	/*
 	将List集合中的每一个SentenceTerm分别处理
 	 */
-	public static List<String> inference(List<SentenceTerm> sentenceTermList,boolean hasrisk,List<SentenceTerm> longSentenceTerms) {
+	public static List<String> inference(ParagraphParamer paragraphParamer,List<SentenceTerm> sentenceTermList,List<SentenceTerm> longSentenceTerms) {
 		List<String> in = new ArrayList<>();
 		List<String>  longSentenceList=null;
 
-		if(hasrisk){
+		if(paragraphParamer.isHasrisk()){
 			//将长句中句子部分组成list给予后面出现风险点获取，避免短句的效果不理想
 			longSentenceList =new ArrayList<>();
 			for(SentenceTerm longSentenceTerm:longSentenceTerms){
@@ -626,16 +635,18 @@ public class CmbParse
 			List<ComNerTerm> comNerTermList = sentenceTerm.getComNerTermList();
 			boolean tagCO = false;
 			boolean tagEX = false;
+			boolean tagAC = false;
 			String EXOB = "";
 			String EXWord = "";
 			List<ComNerTerm> EXComNerTermList = new ArrayList<>();
 			String EXSentence = sentence;
 			int EXLength = 0;
-			if(sentence.contains("风险提示"))//将文中风险提示进入标记，后面进入风险点判断
-				hasrisk=true;
 			for (ComNerTerm eachComNerTerm : comNerTermList) {
 				if (eachComNerTerm.typeStr.toString().equals("CO")) {
 					tagCO = true;
+				}
+				if (eachComNerTerm.typeStr.toString().equals("AC")) {
+					tagAC = true;
 				}
 				if (eachComNerTerm.typeStr.toString().equals("EX")) {
 					tagEX = true;
@@ -659,7 +670,21 @@ public class CmbParse
 					EXOB = StringEscapeUtils.unescapeJava(eachComNerTerm.word);
 				}
 			}
+			//判断无AC情况将段中要求 关注 落实加入成分中：
+			//有段落AC 但是本局无AC情况
+			if(paragraphParamer.getParagraghAC()!=null&&!tagAC&&comNerTermList.size()>0){
+				int insertNum=paragraphParamer.getParagraghAC().length();
+				ComNerTerm acAdd=new ComNerTerm();
+				acAdd.setTypeStr("AC");
+				acAdd.setOffset(sentenceTerm.getOffset());
+				acAdd.setWord(paragraphParamer.getParagraghAC());
 
+				comNerTermList.add(0,acAdd);
+				for(int x=1;x<comNerTermList.size();x++){
+					comNerTermList.get(x).setOffset(comNerTermList.get(x).getOffset()+insertNum);
+				}
+				sentenceTerm.setSentence(paragraphParamer.getParagraghAC()+sentenceTerm.getSentence());
+			}
 			if (tagCO) {
 				sentenceTerm = new SentenceTerm(EXSentence, EXComNerTermList, offset);
 				ruleOut.append(dealCondition(sentenceTerm)); // 处理条件句
@@ -720,7 +745,7 @@ public class CmbParse
                     else if (hasADFlag&&hasOBFlag&&comNerTermList1.size()==2&&str.toString().contains("不得")){
 						in.add("不得 "+str.toString().replaceAll("不得",""));
 					}
-                    else if(hasrisk){
+                    else if(paragraphParamer.isHasrisk()){
 						// 还未识别的入风险点句法树识别风险点
 					//	System.out.println("进入risk：" + sentenceTerm.getSentence());
 						String result=riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
@@ -879,8 +904,6 @@ public class CmbParse
 		}
 		return sentenceTermList;
 	}
-
-
 	//判断是否还存在需要连续的O或D或T
 	private static boolean hasDouble(List<ComNerTerm> comNerTermList)
 	{
@@ -936,8 +959,8 @@ public class CmbParse
 	{
 		String ruleOut = ruleMap.get(rule);
 		if (ruleOut == null) {
-			if(lineStr.length()>1)
-			System.out.println("907 \t"+lineStr);
+//			if(lineStr.length()>1)
+//			System.out.println("907 \t"+lineStr);
 			if (rule.equals(""))
 				return sb.toString();
 //			else if (!rule.contains("AC") && rule.contains("OB")) {
