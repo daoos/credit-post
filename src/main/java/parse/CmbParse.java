@@ -751,7 +751,7 @@ public class CmbParse
 						String result=riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
 						for(String longSentence:longSentenceList){
 							if(result!=null&&longSentence.contains(result)){
-								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}","").replace("_x000D_",""));
+								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十百壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}","").replace("_x000D_",""));
 							}
 						}
 					}

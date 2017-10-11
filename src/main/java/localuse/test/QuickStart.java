@@ -1,6 +1,7 @@
 package localuse.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -14,9 +15,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class QuickStart {
@@ -168,17 +167,28 @@ public class QuickStart {
 
             case cmbTest: {
                 // 招行授信报告测试
+                String url = "http://192.168.2.10:14000/graphOp";
 //                String url = "http://218.77.58.173:23333/api/cmb";
-                String url = "http://h133:12000/api/exchange";
-//                String url = "http://0.0.0.0:22222/api/cmb";
+//                String url = "http://h133:12000/api/exchange";
+//                   String url = "http://218.77.58.173:5004/cmb";
 //                String url = "http://0.0.0.0:5002/cmb"; // 218.77.58.173
 //                String url = "http://192.168.2.6:5002/cmb";
                 int tag = 1;
 
                 if (tag == 1)
                 {
+                    String s1="{\"type\":\"getEdgeAllName\",\"graph\":[\"licom\"],\"layer\":\"1\",\"info\":{\"node\":{\"identity\":\"\",\"root\":\"\",\"name\":\"\",\"label\":\"\",\"id\":\"\",\"type\":\"\",\"content\":\"\"},\"edge\":{\"name\":\"\",\"from\":\"\",\"to\":\"\",\"id\":\"\",\"relationship\":\"licom_relationship\"}}}";
+//                    JSONObject ojb =new JSONObject();
+//                    ojb.put("type","checkByName");
+//                    ojb.put("name","贷后管理");
+                    Map<String, String[]> maps=new HashMap<String, String[]>();
+                    maps.put("data", new String[]{s1});
                     String s =
-                            "人民共和国国家赔偿法";
+                             maps.toString();
+     //                String s="/home/hadoop/wnd";
+
+//                    String s ="{\"type\":\"addNodeEdge\",\"info\":{\"node\":{\"identity\":\"\",\"root\":\"银团贷款业务\",\"name\":\"哈哈\",\"id\":\"664\",\"type\":\"\"},\"edge\":{\"root\":\"银团贷款业务\",\"from\":\"664\",\"to\":\"\",\"id\":\"\",\"relation\":\"哈哈\"}}}";
+//                        String s="《中华人民共和国担保法》第十八条";
                     // "经审议，同意续做北京旅游商品集团总公司授信，金额全折人民币约135955万元，期限1年，其中：北京欧亚高科新能源科技有限公司人民币9955万元，哈尔滨市阿明对青牧业有限公司有限公司全折人民币12.2亿元，天津天美味国际贸易有限公司人民币0.4亿元。要求：\n" +
 //                            "1、分行须严格落实新增特批人民币1.7亿元授信的9项要求，不得有误，确保专款专用，两条船出售后及时收回贷款。\n" +
 //                            "2、密切关注借款人经营、管理和资本市场变化，一旦有不利于我行信贷权益的情况发生，及时停止授信提用，采取法律措施。"+
