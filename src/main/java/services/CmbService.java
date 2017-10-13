@@ -18,17 +18,18 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class CmbService {
 
-    private CmbParse cmbCmbParse;
-        public CmbService(CmbConfig config)
+        CmbConfig cmbConfig;
+        public CmbService(CmbConfig cmbConfig)
         {
-            cmbCmbParse = new CmbParse(config);
+            this.cmbConfig = cmbConfig;
         }
 
         @POST
-
         @Path("/api/cmb")
         public List<String> parse0(String data)
         {
+            CmbParse cmbCmbParse;
+            cmbCmbParse = new CmbParse(cmbConfig);
             List<String> outList = cmbCmbParse.parse(data);
             return outList;
         }
