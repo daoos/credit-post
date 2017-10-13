@@ -43,7 +43,7 @@ public class ComParse {
     @POST
     public List<ComNerTerm> comService(String text) {
         List<ComNerTerm> TermsList = new LinkedList<>();
-        Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
+        Predefine.HANLP_PROPERTIES_PATH = "/mnt/vol_0/wnd/ml/cmb/hanlp.properties";
         StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
 
         List<Term> termList = StandardTokenizer.segment(text);
