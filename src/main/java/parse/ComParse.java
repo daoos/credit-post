@@ -4,6 +4,7 @@ import bean.ComNerTerm;
 import bean.RichTerm;
 import com.hankcs.hanlp.seg.common.Term;
 import com.hankcs.hanlp.tokenizer.StandardTokenizer;
+import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
 import crfpp.CrfppRecognition;
 import org.apache.commons.logging.Log;
@@ -42,6 +43,7 @@ public class ComParse {
     @POST
     public List<ComNerTerm> comService(String text) {
         List<ComNerTerm> TermsList = new LinkedList<>();
+        Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
         StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
 
         List<Term> termList = StandardTokenizer.segment(text);

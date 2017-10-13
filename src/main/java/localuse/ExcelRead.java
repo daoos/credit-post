@@ -42,8 +42,7 @@ public class ExcelRead {
 
     public static String excelWriter2() throws IOException, WriteException, BiffException {
         String s = "";
-        OutputStream os = null;
-        File excel = new File("/home/hpre/program/cmb/note/4000份各样式.xls");
+
         InputStream is = null;
         is = new FileInputStream(excelPath);
         // 2、声明工作簿对象
@@ -58,42 +57,57 @@ public class ExcelRead {
         int rows = oFirstSheet.getRows();//获取工作表中的总行数
         int columns = oFirstSheet.getColumns();//获取工作表中的总列数
 
-        os = new FileOutputStream(excel);
-        WritableWorkbook workbook = Workbook.createWorkbook(os);
-        WritableFont bold = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD);//设置字体种类和黑体显示,字体为Arial,字号大小为10,采用黑体显示
-        WritableCellFormat titleFormate = new WritableCellFormat(bold);//生成一个单元格样式控制对象
-        titleFormate.setAlignment(jxl.format.Alignment.LEFT);//单元格中的内容水平方向居中
-        titleFormate.setVerticalAlignment(VerticalAlignment.TOP);//单元格的内容垂直方向居中
-//        Label title = new Label(0,0,"JExcelApi支持数据类型详细说明",titleFormate);
-        //创建新的一页
-        WritableSheet sheet = workbook.createSheet("First Sheet", 0);
-
         List<String> numList = new ArrayList<>();
-        int j = 0;
         for (int i = 5; i < rows; i++) {
             Cell numCell = oFirstSheet.getCell(1, i);
             String num = numCell.getContents();
             if (!numList.contains(num)) {
                 numList.add(num);
-                Cell oCell = oFirstSheet.getCell(2, i);//需要注意的是这里的getCell方法的参数，第一个是指定第几列，第二个参数才是指定第几行
-                String contents = oCell.getContents();
-                Label nCell = new Label(1, j, num, titleFormate);
-                Label sCell = new Label(2, j++, contents, titleFormate);
-                sheet.addCell(nCell);
-                sheet.addCell(sCell);
             }
-            else {
-
-            }
-            System.out.println(i - 5);
         }
-        workbook.write();
-        workbook.close();
-        os.close();
+
+        CmbConfig cmbConfig;
+        cmbConfig = CmbParse.loadConfig();
+        CmbParse cmbParse = new CmbParse(cmbConfig);
+
+
+        for (String eachFenHang : numList) {
+            int j = 0;
+            OutputStream os = null;
+            File excel = new File("/home/hpre/program/cmb/note/fenhang/"+eachFenHang+".xls");
+            os = new FileOutputStream(excel);
+            WritableWorkbook workbook = Workbook.createWorkbook(os);
+            WritableFont bold = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD);//设置字体种类和黑体显示,字体为Arial,字号大小为10,采用黑体显示
+            WritableCellFormat titleFormate = new WritableCellFormat(bold);//生成一个单元格样式控制对象
+            titleFormate.setAlignment(jxl.format.Alignment.LEFT);//单元格中的内容水平方向居中
+            titleFormate.setVerticalAlignment(VerticalAlignment.TOP);//单元格的内容垂直方向居中
+//          Label title = new Label(0,0,"JExcelApi支持数据类型详细说明",titleFormate);
+            //创建新的一页
+            WritableSheet sheet = workbook.createSheet("First Sheet", 0);
+            for (int i = 0; i < rows; i++) {
+                Cell numCell = oFirstSheet.getCell(1, i);//需要注意的是这里的getCell方法的参数，第一个是指定第几列，第二个参数才是指定第几行
+                String num = numCell.getContents();
+                if (num.equals(eachFenHang)) {
+                    Cell oCell = oFirstSheet.getCell(2, i);
+                    String contents = oCell.getContents();
+                    List<String> parse = cmbParse.parse(contents);
+
+                    for (String eachParse : parse) {
+                        System.out.println("eachParse:"+eachParse);
+                    }
+                    Label nCell = new Label(1, j, contents, titleFormate);
+
+                    Label sCell = new Label(2, j++, contents, titleFormate);
+                    sheet.addCell(nCell);
+                    sheet.addCell(sCell);
+                }
+            }
+            workbook.write();
+            workbook.close();
+            os.close();
+        }
         return s;
     }
-
-
 
 
     public static String excelRead(int col)

@@ -15,6 +15,7 @@ import tools.Levenshtein;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +34,7 @@ public class CmbParse
 	public static String andWord[] = new String[]{"与", "或", "、", "及"};
 	private ComParse comParse = null;
 	private SentenParse sentenParse = null;
+	private String serviceGroup = "";
 	private static OpinionMining mining = null;
 	private static Map<String,String> ruleMap = null;
 
@@ -44,6 +46,8 @@ public class CmbParse
 			sentenParse = new SentenParse(cmbConfig);
 			mining = new OpinionMining(cmbConfig.getModel());
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
@@ -71,6 +75,8 @@ public class CmbParse
 			scanner.close();
 		}
 	}
+
+
 	/*
 	App调用入口
 	 */

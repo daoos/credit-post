@@ -15,8 +15,8 @@ public class Segment
 {
 
 
-	private static String input = "/home/hadoop/wnd/usr/cmb/5月12日工作/原句/";
-	private static String out = "/home/hadoop/wnd/usr/cmb/5月12日工作/标注/";
+	private static String input = "/home/hpre/222/";
+	private static String out = "/home/hpre/222-out/";
 
 //	public static String predicates[] = {"严控","了解","争取","做好","关注","分析","办妥","办理","加强","审查","审核","建立",
 //			"扩大","承诺","控制","提供","收集","明确","查询","核实","核查","检查","沟通","注意","监控","考虑","落实","要求",
@@ -43,7 +43,7 @@ public class Segment
 //			}
 //		}
 
-		Predefine.HANLP_PROPERTIES_PATH = "/home/hadoop/wnd/ml/cmb/hanlp.properties";
+		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
 
 		File dirPath = new File(input);
 		File[] files = dirPath.listFiles();
@@ -57,7 +57,7 @@ public class Segment
 				String temStr = scanner.nextLine();
 				temStr=temStr.replaceAll(" ", "");
 //				StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
-				System.out.println(temStr);
+//				System.out.println(temStr);
 				List<Term> segStr = StandardTokenizer.segment(temStr);
 				String result = "";
 				for (Term sTerm:segStr)
@@ -69,9 +69,10 @@ public class Segment
 						{
 							System.out.println("公司名--->"+sTerm);
 						}
-					System.out.print(sTerm+" ");
 						result = result+sTerm.word+"_"+sTerm.nature+" "; //
 				}
+				System.out.print(result);
+				System.out.println();
 //				System.out.println(result);
 				fileWriter.write(result+"\n"); //"#SENT_BEG#/begin "++" #SENT_END#/end"
 			}
