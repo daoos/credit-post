@@ -14,14 +14,13 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
-
-    private static String train_file = "/home/hpre/note/cmbCom";
-    private static String out_file = "/home/hpre/280cmbCom.crfpp";//280cmbCom.crfpp";
+    private static String train_file = "/mnt/vol_0/wnd/usr/cmb/cmbSenten";
+    private static String out_file = "/mnt/vol_0/wnd/usr/cmb/10月24日/cmbSenten.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
-//    public static String biaoZhu[] = new String[]{"CS"};
+    public static String biaoZhu[] = new String[]{"CS"};
 //    public static String biaoZhu[] = new String[]{"O","T","D","P","C","S","N","A","Q","De"};
-    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
+//    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
     public static String sep = "_"; // "_"  "/"
 
 //    private static String train_file = "/home/hpre/else/文档/out/";
@@ -44,7 +43,7 @@ public class ChangeToFeature
         for (String filePath : filesPath)
         {
             file = new File(filePath);
-//            String result="";
+            String result="";
             if(file.toString().endsWith("/63.txt"))
                 System.out.println();
             try
@@ -64,7 +63,7 @@ public class ChangeToFeature
 //                    result+=lineResult+"\n";
                     String lineResult = dealLine(strLine);
                     fileWriter.write("#SENT_BEG#\tbegin\tOUT"+"\n"+lineResult+"#SENT_END#\tend\tOUT"+"\n"+"\n");
-                    System.out.println(lineResult);
+//                    System.out.println(lineResult);
                 }
             }
             catch (FileNotFoundException e)
@@ -72,37 +71,15 @@ public class ChangeToFeature
                 e.printStackTrace();
             }
             scanner.close();
-//            FileWriter fileWriter = new FileWriter(new File(filePath));
-//            fileWriter.write(result);
-//            fileWriter.flush();
-//            fileWriter.close();
+   //         FileWriter fileWriter = new FileWriter(new File(filePath));
+    //        fileWriter.write(result);
+   //         fileWriter.flush();
+    //        fileWriter.close();
         }
         fileWriter.flush();
         fileWriter.close();
     }
 
-    public static String dealLine1(String line)
-    {
-        String result = "";
-        if(line.equals(result))
-            return result;
-        String biaozhu="#CS#";
-        String[] lineSpaceSplit = line.split("\t");
-        boolean outTag = true;
-        String strBiaoZhu = null;
-        //标注是否为OUT的标志，为true则为OUT。
-        for (String splitedStr : lineSpaceSplit)
-        {
-            String[] slashSplit = splitedStr.split(sep);
-            if(slashSplit[1].equals("w")&&slashSplit[0].equals("。"))
-                System.out.println();
-            if(slashSplit[1].equals("w")&&(slashSplit[0].equals("。")||slashSplit[0].equals("；")))
-                splitedStr=biaozhu+splitedStr+biaozhu;
-
-            result+=splitedStr+"\t";
-        }
-        return result;
-    }
     /*
     处理每一行
     #SENT_BEG#/begin 拟/v #TIME#16/m :/w 30/m#TIME# 送/v OR/nx 行/ng #STYL#腹腔镜/n#STYL# l/nx #OPER#阑尾/n 切除/v 术/ng#OPER#
@@ -165,6 +142,7 @@ public class ChangeToFeature
                     //  今日/t
                     String[] slashSplit = wordAndNature.split(sep);
                     result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_B"+"\n";
+
                     continue;
                 }
             }
@@ -173,11 +151,16 @@ public class ChangeToFeature
                 System.out.println(splitedStr);
                 //不以#开头，但以#结尾   引流术/n#OPER#
                 outTag = true;
-                String wordAndNature = splitedStr.substring(0,
-                        splitedStr.length()-(strBiaoZhu.length()+2));
-                //  今日/t
-                String[] slashSplit = wordAndNature.split(sep);
-                result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_E"+"\n";
+                try{
+                    String wordAndNature = splitedStr.substring(0,
+                            splitedStr.length()-(strBiaoZhu.length()+2));
+                    //  今日/t
+                    String[] slashSplit = wordAndNature.split(sep);
+                    result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_E"+"\n";
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+
                 continue;
 
             }
@@ -197,7 +180,8 @@ public class ChangeToFeature
             {
                 //  切开/v     //  #OPER#脓肿/a 切开/v 引流术/n#OPER#
                 String[] slashSplit = splitedStr.split(sep);
-                result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_M"+"\n";
+                result = result + slashSplit[0] + "\t" + slashSplit[1] + "\t" + strBiaoZhu + "_M" + "\n";
+
             }
 
         }

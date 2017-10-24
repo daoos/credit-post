@@ -50,7 +50,7 @@ public class ComParse {
 //		log.info("分词结果：" + termList);
 
         recCom.addTerms(termList);
-
+        System.out.println(termList.toString());
         List<RichTerm> richTermList = recCom.parse();
 	//	log.info("标注结果:"+richTermList);
         StringBuffer sb = new StringBuffer();

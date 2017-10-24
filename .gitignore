@@ -8,3 +8,4 @@
 model/
 /.idea/
 target/
+src/test/*
