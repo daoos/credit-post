@@ -17,6 +17,7 @@
     <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.9.4" level="project" />
     <orderEntry type="library" name="Maven: io.dropwizard:dropwizard-jackson:1.0.0" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.7.6" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-guava:2.7.6" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.6" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.7.6" level="project" />
@@ -103,6 +104,7 @@
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.15" level="project" />
     <orderEntry type="library" name="Maven: org.apache.opennlp:opennlp-maxent:3.0.3" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
+<<<<<<< .merge_file_4dq809
     <orderEntry type="library" name="Maven: net.sourceforge.jexcelapi:jxl:2.6" level="project" />
     <orderEntry type="library" name="Maven: com.hpre:hpre-coor:1.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.2" level="project" />
@@ -118,5 +120,8 @@
     <orderEntry type="library" name="Maven: org.apache.curator:curator-framework:2.11.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.curator:curator-client:2.11.0" level="project" />
     <orderEntry type="library" name="Maven: com.101tec:zkclient:0.7" level="project" />
+=======
+    <orderEntry type="library" name="jxl-2.6.12" level="project" />
+>>>>>>> .merge_file_o5fk69
   </component>
 </module>
