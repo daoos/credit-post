@@ -3,6 +3,7 @@
 *.pyc
 <<<<<<< .merge_file_olaG9b
 *.yaml
+*.iml
 *.jar
 *.properties
 

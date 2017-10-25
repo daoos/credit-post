@@ -14,8 +14,14 @@ import java.util.Scanner;
  */
 public class ChangeToFeature
 {
+<<<<<<< HEAD
     private static String train_file = "/mnt/vol_0/wnd/usr/cmb/cmbSenten";
     private static String out_file = "/mnt/vol_0/wnd/usr/cmb/10月24日/cmbSenten.crfpp";//280cmbCom.crfpp";
+=======
+
+    private static String train_file = "/home/hpre/program/cmb/cmbCom";
+    private static String out_file = "/home/hpre/program/cmb/model/cmbComFeature.crfpp";//280cmbCom.crfpp";
+>>>>>>> tep25
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
     public static String biaoZhu[] = new String[]{"CS"};
@@ -29,7 +35,6 @@ public class ChangeToFeature
 
     {
         readWriter();
-
     }
     /*
     文件读写和写入
@@ -43,9 +48,12 @@ public class ChangeToFeature
         for (String filePath : filesPath)
         {
             file = new File(filePath);
+<<<<<<< HEAD
             String result="";
             if(file.toString().endsWith("/63.txt"))
                 System.out.println();
+=======
+>>>>>>> tep25
             try
             {
                 scanner = new Scanner(file);
@@ -80,6 +88,32 @@ public class ChangeToFeature
         fileWriter.close();
     }
 
+<<<<<<< HEAD
+=======
+    public static String dealLine1(String line)
+    {
+        String result = "";
+        if(line.equals(result))
+            return result;
+        String biaozhu="#CS#";
+        String[] lineSpaceSplit = line.split("\t");
+        boolean outTag = true;
+        String strBiaoZhu = null;
+        //标注是否为OUT的标志，为true则为OUT。
+        for (String splitedStr : lineSpaceSplit)
+        {
+            String[] slashSplit = splitedStr.split(sep);
+            if(slashSplit[1].equals("w")&&slashSplit[0].equals("。"))
+                System.out.println();
+            if(slashSplit[1].equals("w")&&(slashSplit[0].equals("。")||slashSplit[0].equals("；")))
+                splitedStr=biaozhu+splitedStr+biaozhu;
+
+            result+=splitedStr+"\t";
+        }
+        return result;
+    }
+
+>>>>>>> tep25
     /*
     处理每一行
     #SENT_BEG#/begin 拟/v #TIME#16/m :/w 30/m#TIME# 送/v OR/nx 行/ng #STYL#腹腔镜/n#STYL# l/nx #OPER#阑尾/n 切除/v 术/ng#OPER#
@@ -110,11 +144,6 @@ public class ChangeToFeature
 
                 for (int i = 0; i < biaoZhu.length; i++)
                 {
-                    if (splitedStr.contains("De"))
-                    {
-                        strBiaoZhu = "De";
-                        break;
-                    }
                     //搜索是哪个标注 //DATE
                     if (splitedStr.contains(biaoZhu[i]))
                     {

@@ -30,8 +30,6 @@ public class ComParse {
     public static String comVector[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
 
     public ComParse(CmbConfig config) throws FileNotFoundException {
-
-
         recCom = new CrfppRecognition(config.cmbCom);
     }
 
@@ -47,12 +45,12 @@ public class ComParse {
         StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
 
         List<Term> termList = StandardTokenizer.segment(text);
-//		log.info("分词结果：" + termList);
+		log.info("分词结果：" + termList);
 
         recCom.addTerms(termList);
         System.out.println(termList.toString());
         List<RichTerm> richTermList = recCom.parse();
-	//	log.info("标注结果:"+richTermList);
+		log.info("标注结果:"+richTermList);
         StringBuffer sb = new StringBuffer();
         int offset = 0;
         for (RichTerm richTerm : richTermList) {
