@@ -25,7 +25,7 @@ public class Random2 {
     }
 
     private static void calculate() throws IOException, BiffException {
-        File excelIn1 = new File("/home/hpre/program/cmb/note/fenhang/"+"random (复件).xls");
+        File excelIn1 = new File("/home/hpre/program/cmb/note/fenhang/"+"random.xls");
         InputStream is1 = new FileInputStream(excelIn1);
         Workbook wbIn1 = Workbook.getWorkbook(is1);
         Sheet sheet1 = wbIn1.getSheet(0);
@@ -62,7 +62,10 @@ public class Random2 {
                             continue;
                         }
                         if (each.contains("->")) {
-                            continue;
+                            System.out.println(each);
+                            String[] split = each.split("  ");
+                            each = split[0];
+//                            continue;
                         }
                         System.out.println(each);
                         nowList.add(each);
@@ -78,7 +81,10 @@ public class Random2 {
                             continue;
                         }
                         if (each.contains("->")) {
-                            continue;
+                            System.out.println(each);
+                            String[] split = each.split("  ");
+                            each = split[0];
+//                            continue;
                         }
                         System.out.println(each);
                         trueList.add(each);

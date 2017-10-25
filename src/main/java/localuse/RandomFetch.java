@@ -60,8 +60,8 @@ public class RandomFetch {
     }
 
     private static void run() throws IOException, BiffException, WriteException {
-        String excelDir = "/home/hpre/program/cmb/note/fenhang";
-        File[] files = new File(excelDir).listFiles();
+        String excelDir = "/home/hpre/program/cmb/note/fenhang/random (复件).xls";
+//        File[] files = new File(excelDir).listFiles();
 
         OutputStream os = null;
         File excel = new File("/home/hpre/program/cmb/note/fenhang/"+"random.xls");
@@ -69,28 +69,30 @@ public class RandomFetch {
         WritableWorkbook workbook = Workbook.createWorkbook(os);
         WritableSheet wrsheet = workbook.createSheet("First Sheet", 0);
 
+        InputStream is = null;
+        is = new FileInputStream(excelDir);
+        Workbook workbookIs = Workbook.getWorkbook(is);
+        Sheet sheetIs = workbookIs.getSheet(0);
         int j = 0;
-
-        for (File file : files) {
-            if (file.getName().contains("159分行评测集") ||
-                    file.getName().contains("random") || !file.getName().contains("xls")) {
-                continue;
-            }
-            System.out.println(file.getName());
-            InputStream is = null;
-            is = new FileInputStream(excelDir + "/" + file.getName());
-            Workbook wb = Workbook.getWorkbook(is);
-            Sheet sheet = wb.getSheet(0);
-            int rows = sheet.getRows();
-            int randomNum = new Random().nextInt(rows)%(rows-0+1) + 0;
-            Cell sheet1Cell = sheet.getCell(1, randomNum);
-            String contents = sheet1Cell.getContents();
+        int rowsIs = sheetIs.getRows();
+        for (int k = 0; k < rowsIs; k++) {
+//        for (File file : files) {
+//            System.out.println(file.getName());
+//            InputStream is = null;
+//            is = new FileInputStream(excelDir + "/" + file.getName());
+//            Workbook wb = Workbook.getWorkbook(is);
+//            Sheet sheet = wb.getSheet(0);
+//            int rows = sheet.getRows();
+//            int randomNum = new Random().nextInt(rows)%(rows-0+1) + 0;
+//            Cell sheet1Cell = sheet.getCell(1, randomNum);
+//            String contents = sheet1Cell.getContents();
+            String num = sheetIs.getCell(0, k).getContents();
+            String contents = sheetIs.getCell(1, k).getContents();
             System.out.println(contents);
-            is.close();
-            wb.close();
+//            is.close();
+//            wb.close();
 
-
-            String url = "http://218.77.58.173:5004/cmb";
+            String url = "http://0.0.0.0:5004/cmb";
             String result = query(contents, url);
             JSONObject jsonObject = new JSONObject(result);
 
@@ -173,7 +175,10 @@ public class RandomFetch {
                 resultStr = resultStr + "\n" + name + " (" + relation + ")";
             }
 
-            wrsheet.addCell(new Label(0, j, file.getName() + "  [" + randomNum + "]"));
+
+            System.out.println(resultStr);
+//            wrsheet.addCell(new Label(0, j, file.getName() + "  [" + randomNum + "]"));
+            wrsheet.addCell(new Label(0, j, num));
             wrsheet.addCell(new Label(1, j, contents));
             wrsheet.addCell(new Label(2, j++, resultStr));
 

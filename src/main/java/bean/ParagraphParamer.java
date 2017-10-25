@@ -41,7 +41,7 @@ public class ParagraphParamer {
     public void hasACDemon(String text){
         for(String word:acWord){
             String regExStr = "((?![，。]).)*["+word+"]{2,}((?![，。]).)*：";
-            if(CommonlyTools.getTeacherList(text,regExStr)){
+            if(CommonlyTools.getTeacherList(text,regExStr) && !text.contains("提款要求") && !text.contains("贷前要求")){
                 setParagraghAC(word);
             }
         }

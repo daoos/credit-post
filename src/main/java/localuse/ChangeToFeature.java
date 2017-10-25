@@ -15,8 +15,8 @@ import java.util.Scanner;
 public class ChangeToFeature
 {
 
-    private static String train_file = "/home/hpre/note/cmbCom";
-    private static String out_file = "/home/hpre/280cmbCom.crfpp";//280cmbCom.crfpp";
+    private static String train_file = "/home/hpre/program/cmb/cmbCom";
+    private static String out_file = "/home/hpre/program/cmb/model/cmbComFeature.crfpp";//280cmbCom.crfpp";
 
 //    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
 //    public static String biaoZhu[] = new String[]{"CS"};
@@ -30,7 +30,6 @@ public class ChangeToFeature
 
     {
         readWriter();
-
     }
     /*
     文件读写和写入
@@ -44,9 +43,6 @@ public class ChangeToFeature
         for (String filePath : filesPath)
         {
             file = new File(filePath);
-//            String result="";
-            if(file.toString().endsWith("/63.txt"))
-                System.out.println();
             try
             {
                 scanner = new Scanner(file);
@@ -103,6 +99,7 @@ public class ChangeToFeature
         }
         return result;
     }
+
     /*
     处理每一行
     #SENT_BEG#/begin 拟/v #TIME#16/m :/w 30/m#TIME# 送/v OR/nx 行/ng #STYL#腹腔镜/n#STYL# l/nx #OPER#阑尾/n 切除/v 术/ng#OPER#
@@ -133,11 +130,6 @@ public class ChangeToFeature
 
                 for (int i = 0; i < biaoZhu.length; i++)
                 {
-                    if (splitedStr.contains("De"))
-                    {
-                        strBiaoZhu = "De";
-                        break;
-                    }
                     //搜索是哪个标注 //DATE
                     if (splitedStr.contains(biaoZhu[i]))
                     {
