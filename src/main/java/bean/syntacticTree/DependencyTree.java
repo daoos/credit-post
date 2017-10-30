@@ -35,6 +35,10 @@ public class DependencyTree {
     public Map<Integer, TreeNode> nodes = null;
     public TreeNode root = null;
 
+    /**
+     * 生成依存树
+     * @param sentence
+     */
     public DependencyTree(CoNLLSentence sentence) {
         nodes = new HashMap<Integer, TreeNode>();
 

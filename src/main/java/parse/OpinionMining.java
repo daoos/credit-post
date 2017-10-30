@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+/**
+ * 采用简单的依存句法树做负面信息的判断
+ */
 public class OpinionMining {
     // 带负面信息的词汇
     private Set<String> negativeInfos = null;
@@ -26,7 +29,6 @@ public class OpinionMining {
     // 表“积极意义”的动词
     private Set<String> definitiveDic = null;
 
-    private HttpClient client = null;
 
     private IDependencyParser parser = null;
 
@@ -37,6 +39,12 @@ public class OpinionMining {
         definitive
     }
 
+    /**
+     * 加载相关词典
+     * @param lexicon
+     * @param path
+     * @throws FileNotFoundException
+     */
     public static void loadDictionary(Set<String> lexicon, File path)
             throws FileNotFoundException {
         Scanner input = new Scanner(path);
@@ -48,6 +56,11 @@ public class OpinionMining {
         input.close();
     }
 
+    /**
+     * 初始化
+     * @param confBaseDir
+     * @throws FileNotFoundException
+     */
     public OpinionMining(String confBaseDir) throws FileNotFoundException {
         negativeInfos = new HashSet<String>();
         negativeWords = new HashSet<String>();
@@ -61,9 +74,6 @@ public class OpinionMining {
         loadDictionary(negativeWords, new File(confBaseDir, "negative-words.txt"));
         loadDictionary(definitiveDic, new File(confBaseDir, "definitive.txt"));
 
-        // 句法依存API
-        String url = "http://h127:7777/api/dp";
-        client = new HttpClient(url);
     }
 
 
@@ -72,12 +82,19 @@ public class OpinionMining {
     }
 
 
+    /**
+     * 接口调用入口
+     * @param text
+     * @return
+     * @throws IOException
+     */
     public State expansion(String text) throws IOException {
         CoNLLSentence deps = null;
-        // 语言云接口出现问题，使用本地接口
+
         if (deps == null) {
             List<Term> terms = StandardTokenizer.segment(cleanNoise(text));
             deps = parser.parse(terms);
+
         }
 
         DependencyTree tree = new DependencyTree(deps);
@@ -86,6 +103,11 @@ public class OpinionMining {
         return state;
     }
 
+    /**
+     * 遍历依存树判断
+     * @param root
+     * @return
+     */
     private State polarityJudge(DependencyTree.TreeNode root) {
         // 叶节点，判断自身是否为负面词
         if (root.children == null) {

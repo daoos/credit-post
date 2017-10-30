@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hankcs.hanlp.corpus.tag.Nature;
 
+/**
+ * Created by hadoop on 17-6-7.
+ */
 public class RichTerm {
 	// 词语
 	public String word;
