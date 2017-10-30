@@ -17,8 +17,8 @@ import java.util.Vector;
  * Created by hadoop on 17-10-24.
  */
 public class ChangeToFeatureSenten {
-    private static String TRAINPATH = "/mnt/vol_0/wnd/usr/cmb/cmbSenten_new";
-    private static String OUTFILEPATH = "/mnt/vol_0/wnd/usr/cmb/10月24日/cmbSenten.crfpp";
+    private static String TRAINPATH = "/home/hpre/program/cmb/cmbSenten";
+    private static String OUTFILEPATH = "/home/hpre/program/cmb/model/cmbSentenFeature.crfpp";
 
 
     public static void main(String[] args) {
@@ -43,9 +43,6 @@ public class ChangeToFeatureSenten {
         for (String filePath : filesPath)
         {
             file = new File(filePath);
-//            String result="";
-            if(file.toString().endsWith("/192.txt"))
-                System.out.println();
             try
             {
                 scanner = new Scanner(file);
@@ -58,6 +55,7 @@ public class ChangeToFeatureSenten {
                     System.out.println(i+"行");
                     System.out.println(strLine);
                     i++;
+                    strLine = formChange(strLine);
                     String lineResult = dealLine(strLine);
                     fileWriter.write("#SENT_BEG#\tbegin\tOUT"+"\n"+lineResult+"#SENT_END#\tend\tOUT"+"\n"+"\n");
                     System.out.println(lineResult);
@@ -74,12 +72,18 @@ public class ChangeToFeatureSenten {
         fileWriter.close();
     }
 
+    private String formChange(String outline){
+        String newLine=outline.replaceAll("_\\w+ ","").replaceAll("_\\w+$","");
+        newLine=newLine.replace("_w#CS# ","_CS]").replace("_w#CS#","_CS]").replace("#CS#","[");
+        return newLine;
+    }
+
 
 /*
    *语句解析成feature格式
  */
     private String dealLine(String inline){
-        Predefine.HANLP_PROPERTIES_PATH = "/mnt/vol_0/wnd/ml/cmb/hanlp.properties";
+        Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
         StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
         List<Term> termList = StandardTokenizer.segment(inline);
         String result="";
@@ -97,6 +101,7 @@ public class ChangeToFeatureSenten {
         for (String biaodian : biaodians) {
             result=result.replaceFirst("\\[_w ._w _CS_nx\\ ]_w","#CS#"+biaodian+"_w#CS#");
         }
+        System.out.println("ChangeToFeatureSenten:" + result);
         String lineResult=ChangeToFeature.dealLine(result);
         return lineResult;
     }

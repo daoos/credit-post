@@ -1,7 +1,6 @@
 package localuse.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.Header;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -56,7 +55,7 @@ public class QuickStart {
         System.out.println(query2_end - query2_st);
     }
 
-    static ObjectMapper mapper = new ObjectMapper();
+//    static ObjectMapper mapper = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
         Type t = Type.cmbTest;//biomedicine_query  //nlp  //biomedTest //ctpost //cmbTest
@@ -167,7 +166,7 @@ public class QuickStart {
 
             case cmbTest: {
                 // 招行授信报告测试
-<<<<<<< HEAD
+
                 String url = "http://192.168.2.10:14000/graphOp";
 //                String url = "http://218.77.58.173:23333/api/cmb";
 
@@ -178,16 +177,19 @@ public class QuickStart {
         //        String url = "http://0.0.0.0:23333/api/cmb";
 
 //                String url = "http://0.0.0.0:5002/cmb"; // 218.77.58.173
-=======
-                String url = "http://218.77.58.173:23333/api/cmb";
->>>>>>> tep25
+
+ //               String url = "http://218.77.58.173:23333/api/cmb";
+
+
+      //         String url = "http://218.77.58.173:23333/api/cmb";
+
 //                String url = "http://192.168.2.6:5002/cmb";
                 int tag = 1;
 
                 if (tag == 1)
                 {
 
-<<<<<<< HEAD
+
                     String s1="{\"type\":\"getEdgeAllName\",\"graph\":[\"licom\"],\"layer\":\"1\",\"info\":{\"node\":{\"identity\":\"\",\"root\":\"\",\"name\":\"\",\"label\":\"\",\"id\":\"\",\"type\":\"\",\"content\":\"\"},\"edge\":{\"name\":\"\",\"from\":\"\",\"to\":\"\",\"id\":\"\",\"relationship\":\"licom_relationship\"}}}";
 //                    JSONObject ojb =new JSONObject();
 //                    ojb.put("type","checkByName");
@@ -195,8 +197,8 @@ public class QuickStart {
                     Map<String, String[]> maps=new HashMap<String, String[]>();
                     maps.put("data", new String[]{s1});
 
-                    String s =
-                             maps.toString();
+     //               String s =
+  maps.toString();
      //                String s="/home/hadoop/wnd";
 
 //                    String s ="{\"type\":\"addNodeEdge\",\"info\":{\"node\":{\"identity\":\"\",\"root\":\"银团贷款业务\",\"name\":\"哈哈\",\"id\":\"664\",\"type\":\"\"},\"edge\":{\"root\":\"银团贷款业务\",\"from\":\"664\",\"to\":\"\",\"id\":\"\",\"relation\":\"哈哈\"}}}";
@@ -204,7 +206,6 @@ public class QuickStart {
                     // "经审议，同意续做北京旅游商品集团总公司授信，金额全折人民币约135955万元，期限1年，其中：北京欧亚高科新能源科技有限公司人民币9955万元，哈尔滨市阿明对青牧业有限公司有限公司全折人民币12.2亿元，天津天美味国际贸易有限公司人民币0.4亿元。要求：\n" +
 
 
-=======
                     String s = "\t根据总行2012年6月15日对中华控股投资公司集团授信审批意见，我行给予中华控股投资公司集团授信额度350亿元。目前已经切分境内分行承办额度187.614亿元。\n" +
                             "该项目为原有项目授信续期，额度不变，分行单户权限。请执行分行审批意见。\n" +
                             "附分行审批意见如下：\n" +
@@ -220,7 +221,6 @@ public class QuickStart {
                             "\t1、加强贷后管理，关注企业经营情况及宏观经济境变化、人民币升值等因素对申请人及其下属公司的影响，若有异常，及时上报分行，调整我行授信方案。  \n" +
                             "\t2、本授信额度纳入国家开发投资公司在总行战略类集团授信，统一管理。\n" +
                             "\t\t\t\t\t\t\t\t"; // "经审议，同意续做北京旅游商品集团总公司授信，金额全折人民币约135955万元，期限1年，其中：北京欧亚高科新能源科技有限公司人民币9955万元，哈尔滨市阿明对青牧业有限公司有限公司全折人民币12.2亿元，天津天美味国际贸易有限公司人民币0.4亿元。要求：\n" +
->>>>>>> tep25
 //                            "1、分行须严格落实新增特批人民币1.7亿元授信的9项要求，不得有误，确保专款专用，两条船出售后及时收回贷款。\n" +
 //                            "2、密切关注借款人经营、管理和资本市场变化，一旦有不利于我行信贷权益的情况发生，及时停止授信提用，采取法律措施。"+
 //                            "重点关注公司与下游客户合作情况、股票投资及对外股权投资情况变动。";

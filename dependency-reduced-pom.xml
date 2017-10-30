@@ -27,11 +27,7 @@
               <transformers>
                 <transformer />
                 <transformer>
-<<<<<<< .merge_file_JppWCg
                   <mainClass>access.App</mainClass>
-=======
-                  <mainClass>com.cmb.App</mainClass>
->>>>>>> .merge_file_ZLVYHg
                 </transformer>
               </transformers>
             </configuration>

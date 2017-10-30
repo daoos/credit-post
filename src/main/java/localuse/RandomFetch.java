@@ -1,6 +1,5 @@
 package localuse;
 
-import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
@@ -21,7 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.util.Random;
 
 /**
  * usage:从159个分行中随机抽取出一篇文本，并记录是哪一篇，并访问授信文本结构化接口，将结果也存入xls

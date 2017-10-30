@@ -43,8 +43,10 @@ public class Random2 {
         int sum1 = 0;
         int sum2 = 0;
         int rows = sheet1.getRows();
+//        System.out.println(rows);
 
-        for (int i = 0; i < rows; i++) {
+        for (int i = 0; i < 159; i++) {
+            System.out.println(i);
             List<String> trueList = new ArrayList<>();
             Map<String, List<String>> trueMap = new HashMap<>();
             List<String> nowList = new ArrayList<>();
