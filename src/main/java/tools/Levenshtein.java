@@ -100,20 +100,9 @@ public class Levenshtein {
      *
      * @return
      */
-
     public float getSimilarityRatio(String str, String target) {
         return 1 - (float) compare(str, target)
                 / Math.max(str.length(), target.length());
-
     }
 
-    public static void main(String[] args) {
-        Levenshtein lt = new Levenshtein();
-        String str = "银团贷款业务角色有那些？";
-        String target = "银团贷款角色";
-        System.out.println("similarityRatio="
-                + lt.getSimilarityRatio(str, target));
-        System.out.println("Location="
-                + lt.getCharLocation(str, target));
-    }
 }

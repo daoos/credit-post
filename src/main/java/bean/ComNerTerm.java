@@ -17,6 +17,19 @@ public class ComNerTerm implements Serializable
     {
     }
 
+    public ComNerTerm(String typeStr, String word)
+    {
+        this.typeStr = typeStr;
+        this.word = word;
+    }
+
+    public ComNerTerm(String word, String typeStr, int offset)
+    {
+        this.word = word;
+        this.typeStr = typeStr;
+        this.offset = offset;
+    }
+
     public int getOffset() {
         return offset;
     }
@@ -43,18 +56,6 @@ public class ComNerTerm implements Serializable
         this.word = word;
     }
 
-    public ComNerTerm(String typeStr, String word)
-    {
-        this.typeStr = typeStr;
-        this.word = word;
-    }
-
-    public ComNerTerm(String word, String typeStr, int offset)
-    {
-        this.word = word;
-        this.typeStr = typeStr;
-        this.offset = offset;
-    }
 
     @Override
     public String toString()

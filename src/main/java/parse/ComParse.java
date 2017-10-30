@@ -4,7 +4,6 @@ import bean.ComNerTerm;
 import bean.RichTerm;
 import com.hankcs.hanlp.seg.common.Term;
 import com.hankcs.hanlp.tokenizer.StandardTokenizer;
-import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
 import crfpp.CrfppRecognition;
 import org.apache.commons.logging.Log;
@@ -30,29 +29,55 @@ public class ComParse {
     public static String comVector[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
 
     public ComParse(CmbConfig config) throws FileNotFoundException {
-
-
         recCom = new CrfppRecognition(config.cmbCom);
     }
 
-    /*
-    实体识别
-    input:  一篇授信报告
-    output: 存了成分的List集合
+    /**
+     * 主方法
+     * @param args
+     * @throws IOException
+     */
+    public static void main(String args[]) throws IOException {
+        File dir = new File(args[0]);
+        CmbConfig config = new CmbConfig();
+        FileWriter fileWriter = new FileWriter(new File("/home/hpre/program/cmb/成分测试结果"));
+        ComParse com = new ComParse(config);
+        for (File f : dir.listFiles()) {
+            Scanner input = new Scanner(f);
+            System.out.println(f.getAbsolutePath());
+            while (input.hasNext()) {
+                String string = input.nextLine();
+                int tagUse = 1;
+
+                fileWriter.write(string+"\n");
+                List<ComNerTerm> comServiceOut = com.comService(string);
+                if (comServiceOut.size() != 0) {
+                    System.out.println(comServiceOut);
+                    fileWriter.write(comServiceOut + "\n");
+                }
+            }
+            input.close();
+        }
+        fileWriter.close();
+    }
+
+    /**
+     * 实体识别
+     * @param text  一篇授信报告
+     * @return  存了成分的List集合
      */
     @POST
     public List<ComNerTerm> comService(String text) {
         List<ComNerTerm> TermsList = new LinkedList<>();
-        Predefine.HANLP_PROPERTIES_PATH = "/mnt/vol_0/wnd/ml/cmb/hanlp.properties";
         StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
 
         List<Term> termList = StandardTokenizer.segment(text);
-//		log.info("分词结果：" + termList);
+		log.info("分词结果：" + termList);
 
         recCom.addTerms(termList);
         System.out.println(termList.toString());
         List<RichTerm> richTermList = recCom.parse();
-	//	log.info("标注结果:"+richTermList);
+		log.info("标注结果:"+richTermList);
         StringBuffer sb = new StringBuffer();
         int offset = 0;
         for (RichTerm richTerm : richTermList) {
@@ -92,32 +117,58 @@ public class ComParse {
             }
         }
         recCom.clear();
-//      log.info("归并后的结果：" + termsList);
         return TermsList;
     }
 
-    public static void main(String args[]) throws IOException {
-        File dir = new File(args[0]);
-        CmbConfig config = new CmbConfig();
-        FileWriter fileWriter = new FileWriter(new File("/home/hpre/program/cmb/成分测试结果"));
-        ComParse com = new ComParse(config);
-        for (File f : dir.listFiles()) {
-            Scanner input = new Scanner(f);
-            System.out.println(f.getAbsolutePath());
-            while (input.hasNext()) {
-                String string = input.nextLine();
-                int tagUse = 1;
+    /**
+     * 此处为还原部分，从计算机标注还原到人为标注
+     * @param data  原始文本
+     * @return  机器标注结果
+     */
+    public static String manualBiaozhu(String data)
+    {
+        CrfppRecognition rec;
+        StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
+        List<Term> termList = StandardTokenizer.segment(data);
+        rec = new CrfppRecognition("/home/hpre/projects/cmbPython/model.crfpp");
+        rec.addTerms(termList);
 
-                fileWriter.write(string+"\n");
-                List<ComNerTerm> comServiceOut = com.comService(string);
-                if (comServiceOut.size() != 0) {
-                    System.out.println(comServiceOut);
-                    fileWriter.write(comServiceOut + "\n");
+        List<RichTerm> richTermList = rec.parse();
+        String manualBiaoZhu = "";
+        for (RichTerm rTerm : richTermList)
+        {
+            if (rTerm.word.toString().equals("#SENT_BEG#") || rTerm.word.toString().equals("#SENT_END#"))
+                continue;
+            if (rTerm.comTypeStr.toString().equals("OUT"))
+            {
+                manualBiaoZhu = manualBiaoZhu + rTerm.word + "_" + rTerm.pos + " ";
+            }
+            else
+            {
+                if (rTerm.comTypeStr.toString().contains("_S"))
+                {
+                    manualBiaoZhu = manualBiaoZhu + "#" + rTerm.comTypeStr.toString().substring(0, rTerm.comTypeStr.toString().length() - 2) +
+                            "#" + rTerm.word + "_" + rTerm.pos + "#" +
+                            rTerm.comTypeStr.toString().substring(0, rTerm.comTypeStr.toString().length() - 2) + "#" + " ";
+                }
+                else if (rTerm.comTypeStr.toString().contains("_B"))
+                {
+                    manualBiaoZhu = manualBiaoZhu +"#" + rTerm.comTypeStr.toString().substring(0, rTerm.comTypeStr.toString().length() - 2)+
+                            "#"+rTerm.word+"_"+rTerm.pos+" ";
+                }
+                else if (rTerm.comTypeStr.toString().contains("_E"))
+                {
+                    manualBiaoZhu = manualBiaoZhu +rTerm.word+"_"+rTerm.pos+"#" +
+                            rTerm.comTypeStr.toString().substring(0, rTerm.comTypeStr.toString().length() - 2)+ "#"+" ";
+                }
+                else if (rTerm.comTypeStr.toString().contains("_M"))
+                {
+                    manualBiaoZhu = manualBiaoZhu + rTerm.word+"_"+
+                            rTerm.pos+" ";
                 }
             }
-            input.close();
         }
-        fileWriter.close();
+        return manualBiaoZhu;
     }
 
 }

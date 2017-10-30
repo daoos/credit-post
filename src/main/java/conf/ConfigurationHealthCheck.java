@@ -14,11 +14,6 @@ public class ConfigurationHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
-//        if (segModlePath != null && segModlePath.startsWith("/model")) {
-//            return Result.healthy();
-//        }
-//
-//        return Result.unhealthy("Segment Model Path Error!");
         return Result.healthy();
     }
 }
