@@ -67,6 +67,7 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>2.7.6</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.opennlp</groupId>
             <artifactId>opennlp-maxent</artifactId>
@@ -86,11 +87,11 @@
             <artifactId>jxl</artifactId>
             <version>2.6</version>
         </dependency>
-        <dependency>
-            <groupId>com.hpre</groupId>
-            <artifactId>hpre-coor</artifactId>
-            <version>1.1-SNAPSHOT</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.hpre</groupId>-->
+            <!--<artifactId>hpre-coor</artifactId>-->
+            <!--<version>1.1-SNAPSHOT</version>-->
+        <!--</dependency>-->
     </dependencies>
 
     <build>

@@ -63,5 +63,5 @@ public class CommonlyTools {
         }
 
         return all;
-    }s
+    }
 }
