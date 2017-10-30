@@ -8,7 +8,6 @@ import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
@@ -25,14 +24,18 @@ import java.io.*;
  * usage:从159个分行中随机抽取出一篇文本，并记录是哪一篇，并访问授信文本结构化接口，将结果也存入xls
  * Created by hpre on 17-10-10.
  */
-public class RandomFetch {
+public class RandomExlWrite {
 
     public static void main(String[] args) throws IOException, BiffException, WriteException {
         run();
     }
 
-    //TODO 存在bug，导出的表格大，但却只有一行
-
+    /**
+     * 将混乱的动作、对象和分类整理好
+     * @param object    对象
+     * @param action    动作
+     * @return  整理好的动作+对象+分类
+     */
     private static String fetchStr(String object, String action) {
         int i1 = object.indexOf("<span");
         int i2 = object.indexOf("</span");
@@ -57,9 +60,18 @@ public class RandomFetch {
         return resultStr;
     }
 
+    /**
+     * 从一个表格中读原文，将原文访问授信文本结构化接口，将结果解析好存入表格中
+     * @throws IOException
+     * @throws BiffException
+     * @throws WriteException
+     */
     private static void run() throws IOException, BiffException, WriteException {
         String excelDir = "/home/hpre/program/cmb/note/fenhang/random (复件).xls";
-//        File[] files = new File(excelDir).listFiles();
+        InputStream is = null;
+        is = new FileInputStream(excelDir);
+        Workbook workbookIs = Workbook.getWorkbook(is);
+        Sheet sheetIs = workbookIs.getSheet(0);
 
         OutputStream os = null;
         File excel = new File("/home/hpre/program/cmb/note/fenhang/"+"random.xls");
@@ -67,29 +79,12 @@ public class RandomFetch {
         WritableWorkbook workbook = Workbook.createWorkbook(os);
         WritableSheet wrsheet = workbook.createSheet("First Sheet", 0);
 
-        InputStream is = null;
-        is = new FileInputStream(excelDir);
-        Workbook workbookIs = Workbook.getWorkbook(is);
-        Sheet sheetIs = workbookIs.getSheet(0);
         int j = 0;
         int rowsIs = sheetIs.getRows();
         for (int k = 0; k < rowsIs; k++) {
-//        for (File file : files) {
-//            System.out.println(file.getName());
-//            InputStream is = null;
-//            is = new FileInputStream(excelDir + "/" + file.getName());
-//            Workbook wb = Workbook.getWorkbook(is);
-//            Sheet sheet = wb.getSheet(0);
-//            int rows = sheet.getRows();
-//            int randomNum = new Random().nextInt(rows)%(rows-0+1) + 0;
-//            Cell sheet1Cell = sheet.getCell(1, randomNum);
-//            String contents = sheet1Cell.getContents();
             String num = sheetIs.getCell(0, k).getContents();
             String contents = sheetIs.getCell(1, k).getContents();
             System.out.println(contents);
-//            is.close();
-//            wb.close();
-
             String url = "http://0.0.0.0:5004/cmb";
             String result = query(contents, url);
             JSONObject jsonObject = new JSONObject(result);
@@ -172,37 +167,35 @@ public class RandomFetch {
                 String name = relationJson.getString("Name");
                 resultStr = resultStr + "\n" + name + " (" + relation + ")";
             }
-
-
             System.out.println(resultStr);
-//            wrsheet.addCell(new Label(0, j, file.getName() + "  [" + randomNum + "]"));
             wrsheet.addCell(new Label(0, j, num));
             wrsheet.addCell(new Label(1, j, contents));
             wrsheet.addCell(new Label(2, j++, resultStr));
-
         }
-
         workbook.write();
         workbook.close();
         os.close();
-
     }
 
 
-    public static String query(String content, String url) throws JSONException, ClientProtocolException, IOException {
+    /**
+     * 向url发送post请求
+     * @param content   请求主体
+     * @param url   请求地址
+     * @return  响应结果
+     * @throws JSONException
+     * @throws IOException
+     */
+    public static String query(String content, String url) throws JSONException, IOException {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         StringBuffer sb = new StringBuffer();
         try {
             HttpPost httpPost = new HttpPost(url);
             HttpEntity entity = new ByteArrayEntity(content.getBytes());
-
             httpPost.setEntity(entity);
-
             CloseableHttpResponse response = httpclient.execute(httpPost);
-
             try {
                 HttpEntity entity2 = response.getEntity();
-
                 BufferedReader reader = new BufferedReader(new InputStreamReader(entity2.getContent()));
                 String line = null;
                 while ((line = reader.readLine()) != null) {
@@ -215,7 +208,6 @@ public class RandomFetch {
         } finally {
             httpclient.close();
         }
-
         return sb.toString();
     }
 

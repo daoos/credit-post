@@ -17,15 +17,20 @@ import java.util.*;
  *2、计算授信文本结构化效果的准确率、召回率、F值
  * Created by hpre on 17-10-10.
  */
-public class Random2 {
+public class ExlCompare {
 
     public static void main(String[] args) throws WriteException, IOException, BiffException {
 //        run();
         calculate();
     }
 
+    /**
+     * 对比2个表格中结果得出授信文本结构化准确率、召回率、F值
+     * @throws IOException
+     * @throws BiffException
+     */
     private static void calculate() throws IOException, BiffException {
-        File excelIn1 = new File("/home/hpre/program/cmb/note/fenhang/"+"random.xls");
+        File excelIn1 = new File("/home/hpre/program/cmb/note/fenhang/"+"random (复件).xls");
         InputStream is1 = new FileInputStream(excelIn1);
         Workbook wbIn1 = Workbook.getWorkbook(is1);
         Sheet sheet1 = wbIn1.getSheet(0);
@@ -67,7 +72,6 @@ public class Random2 {
                             System.out.println(each);
                             String[] split = each.split("  ");
                             each = split[0];
-//                            continue;
                         }
                         System.out.println(each);
                         nowList.add(each);
@@ -83,10 +87,10 @@ public class Random2 {
                             continue;
                         }
                         if (each.contains("->")) {
+
                             System.out.println(each);
                             String[] split = each.split("  ");
                             each = split[0];
-//                            continue;
                         }
                         System.out.println(each);
                         trueList.add(each);
@@ -112,13 +116,18 @@ public class Random2 {
         System.out.println(accuracy);
         System.out.println(sum1);
         System.out.println(sum2);
-
         wbIn1.close();
         is1.close();
         wbIn2.close();
         is2.close();
     }
 
+    /**
+     * 将一个表格中授信文本结构化结果分字段存入表格中
+     * @throws IOException
+     * @throws BiffException
+     * @throws WriteException
+     */
     private static void run() throws IOException, BiffException, WriteException {
         File excelIn = new File("/home/hpre/program/cmb/note/fenhang/"+"random.xls");
         InputStream is = new FileInputStream(excelIn);
@@ -242,16 +251,8 @@ public class Random2 {
                     }
                 }
             }
-
-//            wbOut.close();
-//
-//            wrsheet.mergeCells(0, 0, i, i + q);
-//            wrsheet.mergeCells(1, 1, i, i + q);
-//            wrsheet.mergeCells(2, 2, i, i + q);
             mergeMap.put(i, q);
-//            l += q;
         }
-
         int p = 0;
         for (int i = 0; i < rows; i++) {
             int q = mergeMap.get(i);
@@ -260,7 +261,6 @@ public class Random2 {
             wrsheet.mergeCells(2, p, 2, p + q);
             p += q;
         }
-
         wbOut.write();
         is.close();
         wbIn.close();

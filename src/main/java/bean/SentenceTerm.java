@@ -3,6 +3,7 @@ package bean;
 import java.util.List;
 
 /**
+ * 句子对象
  * Created by hpre on 16-10-28.
  */
 public class SentenceTerm

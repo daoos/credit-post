@@ -67,6 +67,10 @@ public class CrfppRecognition
         tagger.clear();
     }
 
+    /**
+     * 标注
+     * @return
+     */
     public List<RichTerm> parse()
     {
         if (Config.isDebug())
@@ -98,20 +102,12 @@ public class CrfppRecognition
                 System.out.print("\n");
             }
 
-//            System.out.println(i+"\t"+tagger.x(i,0)+"\t"+tagger.x(i,1)+"\t"+tagger.y(i)+"\t"+tagger.y2(i));//+"\t"+tagger.x(i,2)
-            String test = tagger.y2(i);
             RichTerm term = new RichTerm(tagger.x(i, 0),
-                    Nature.fromString(tagger.x(i, 1)), tagger.y2(i));//ComAnnotation.fromString(tagger.y2(i))
+                    Nature.fromString(tagger.x(i, 1)), tagger.y2(i));
 
             terms.add(term);
         }
         return terms;
     }
 
-    public static List<String> combine(List<RichTerm> terms)
-    {
-        List<String> list = new LinkedList<String>();
-
-        return list;
-    }
 }

@@ -19,11 +19,28 @@ public class SentenParse {
 
     public SentenParse(CmbConfig cmbConfig) {
         recCS = new CrfppRecognition(cmbConfig.cmbSenten);
-
     }
 
-    /*
-    将一篇授信报告进行句子划分，划分好的句子会存在一个List集合中
+    public static void main(String[] args) throws FileNotFoundException {
+        File[] files = new File(args[0]).listFiles();
+        CmbConfig cmbConfig = new CmbConfig();
+        SentenParse juDouParser = new SentenParse(cmbConfig);
+        for (File file: files) {
+            Scanner input = new Scanner(file);
+            System.out.println(file.getAbsolutePath());
+            while (input.hasNextLine()) {
+                List<String> list = juDouParser.sentenService(input.nextLine());
+                for (String s : list) {
+                    System.out.println(s);
+                }
+            }
+        }
+    }
+
+    /**
+     * 将一篇授信报告进行句子划分，划分好的句子会存在一个List集合中
+     * @param text
+     * @return
      */
     @POST
     public List<String> sentenService(String text) {
@@ -43,10 +60,8 @@ public class SentenParse {
                 if (!tem_s.equals("")) {
                     resultList.add(tem_s);
                 }
-
                 tem_s = "";
-            }
-            else {
+            } else {
                 if (!richTerm.pos.toString().equals("begin")&&!richTerm.pos.toString().equals("end")) {
                     tem_s = tem_s+richTerm.word;
                 }
@@ -60,34 +75,7 @@ public class SentenParse {
             }
         }
         recCS.clear();
-
         return resultList;
-
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        File[] files = new File(args[0]).listFiles();
-
-        CmbConfig cmbConfig = new CmbConfig();
-        SentenParse juDouParser = new SentenParse(cmbConfig);
-
-        Set<String> sets = new HashSet<>();
-        for (File file: files) {
-            Scanner input = new Scanner(file);
-            System.out.println(file.getAbsolutePath());
-            while (input.hasNextLine()) {
-                List<String> list = juDouParser.sentenService(input.nextLine());
-                for (String s : list) {
-                    System.out.println(s);
-                }
-//                for (String sent: list) {
-//                    if (sent.contains(",") || sent.contains("，"))
-//                        sets.add(sent);
-//                }
-            }
-        }
-//        for (String sent: sets) {
-//            System.out.println(sent);
-//        }
-    }
 }

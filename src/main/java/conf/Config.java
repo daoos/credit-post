@@ -7,8 +7,5 @@ public class Config
 	public static boolean isDebug() {
 		return debug;
 	}
-	
-	public static void enableDebug(boolean bool) {
-		debug = bool;
-	}
+
 }
