@@ -1,5 +1,10 @@
 package localuse;
 
+import com.hankcs.hanlp.seg.common.Term;
+import com.hankcs.hanlp.tokenizer.StandardTokenizer;
+import com.hankcs.hanlp.utility.Predefine;
+import tools.CommonlyTools;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -7,53 +12,44 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Vector;
 
 /**
-
  * Created by hpre on 16-10-27.
  */
 public class ChangeToFeature
 {
-<<<<<<< HEAD
-    private static String train_file = "/mnt/vol_0/wnd/usr/cmb/cmbSenten";
-    private static String out_file = "/mnt/vol_0/wnd/usr/cmb/10月24日/cmbSenten.crfpp";//280cmbCom.crfpp";
-=======
 
     private static String train_file = "/home/hpre/program/cmb/cmbCom";
-    private static String out_file = "/home/hpre/program/cmb/model/cmbComFeature.crfpp";//280cmbCom.crfpp";
->>>>>>> tep25
+    private static String out_file = "/home/hpre/program/cmb/model/cmbComFeature.crfpp";
 
-//    public static String biaoZhu[] = new String[]{"OPER","ANES","DATE","TIME","DIET","STYL","MEAS","OTHE"};
-    public static String biaoZhu[] = new String[]{"CS"};
-//    public static String biaoZhu[] = new String[]{"O","T","D","P","C","S","N","A","Q","De"};
-//    public static String biaoZhu[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
-    public static String sep = "_"; // "_"  "/"
+    public static String biaozhu_Senten[] = new String[]{"CS"};
+    public static String biaozhu_com[] = new String[]{"VN","AC", "OB", "EX", "QU", "VC", "AD", "VE", "PP", "NA", "CO", "PE"};
+    public static String sep = "_";
 
-//    private static String train_file = "/home/hpre/else/文档/out/";
-//    private static String out_file = "/home/hpre/xiangya/pythonChengfen/featureCom3.com.qdcz.crfpp";
+    /**
+     * 主方法
+     * @param args
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException
-
     {
         readWriter();
     }
-    /*
-    文件读写和写入
+
+    /**
+     * 文件读写和写入
+     * @throws IOException
      */
     public static void readWriter() throws IOException
     {
-        List<String> filesPath = listFile(train_file);
+        File[] files = new File(train_file).listFiles();
         Scanner scanner = null;
-        File file;
         FileWriter fileWriter = new FileWriter(new File(out_file));
-        for (String filePath : filesPath)
+        for (File file : files)
         {
-            file = new File(filePath);
-<<<<<<< HEAD
-            String result="";
             if(file.toString().endsWith("/63.txt"))
                 System.out.println();
-=======
->>>>>>> tep25
             try
             {
                 scanner = new Scanner(file);
@@ -62,16 +58,12 @@ public class ChangeToFeature
                 while (scanner.hasNext())
                 {
                     strLine = scanner.nextLine();
-                    System.out.println(filePath);
+                    System.out.println(file);
                     System.out.println(i+"行");
                     System.out.println(strLine);
                     i++;
-
-//                    String lineResult = dealLine1(strLine);
-//                    result+=lineResult+"\n";
-                    String lineResult = dealLine(strLine);
+                    String lineResult = dealLine(strLine, "senten"); // com
                     fileWriter.write("#SENT_BEG#\tbegin\tOUT"+"\n"+lineResult+"#SENT_END#\tend\tOUT"+"\n"+"\n");
-//                    System.out.println(lineResult);
                 }
             }
             catch (FileNotFoundException e)
@@ -79,69 +71,42 @@ public class ChangeToFeature
                 e.printStackTrace();
             }
             scanner.close();
-   //         FileWriter fileWriter = new FileWriter(new File(filePath));
-    //        fileWriter.write(result);
-   //         fileWriter.flush();
-    //        fileWriter.close();
         }
         fileWriter.flush();
         fileWriter.close();
     }
 
-<<<<<<< HEAD
-=======
-    public static String dealLine1(String line)
-    {
-        String result = "";
-        if(line.equals(result))
-            return result;
-        String biaozhu="#CS#";
-        String[] lineSpaceSplit = line.split("\t");
-        boolean outTag = true;
-        String strBiaoZhu = null;
-        //标注是否为OUT的标志，为true则为OUT。
-        for (String splitedStr : lineSpaceSplit)
-        {
-            String[] slashSplit = splitedStr.split(sep);
-            if(slashSplit[1].equals("w")&&slashSplit[0].equals("。"))
-                System.out.println();
-            if(slashSplit[1].equals("w")&&(slashSplit[0].equals("。")||slashSplit[0].equals("；")))
-                splitedStr=biaozhu+splitedStr+biaozhu;
-
-            result+=splitedStr+"\t";
-        }
-        return result;
-    }
-
->>>>>>> tep25
-    /*
-    处理每一行
-    #SENT_BEG#/begin 拟/v #TIME#16/m :/w 30/m#TIME# 送/v OR/nx 行/ng #STYL#腹腔镜/n#STYL# l/nx #OPER#阑尾/n 切除/v 术/ng#OPER#
-     #SENT_END#/end
+    /**
+     * 将标注文件转成可被crf_learn训练的feature文件
+     * @param line  一行文本
+     * @param type  转换类型  senten/com
+     * @return  一行转换结果
      */
-    public static String dealLine(String line)
+    public static String dealLine(String line, String type)
     {
         String result = "";
-  //      line=line.replaceAll(" ","\t");
         String[] lineSpaceSplit = line.split(" ");
         boolean outTag = true;
         String strBiaoZhu = null;
-        //标注是否为OUT的标志，为true则为OUT。
+        String biaoZhu[] = null;
         for (String splitedStr : lineSpaceSplit)
         {
-
-//            strBiaoZhu = "CS";
+            if (type.equals("senten")) {
+                biaoZhu = biaozhu_Senten;
+                strBiaoZhu = "CS";
+            } else if (type.equals("com")){
+                biaoZhu = biaozhu_com;
+            } else {
+                System.out.println("请输入正确的转换类型");
+            }
             if (splitedStr.equals("#SENT_BEG#/begin")||splitedStr.equals("#SENT_END#/end"))
             {
                 String[] slashSplit = splitedStr.split(sep);
                 result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+"OUT"+"\n";
-//                System.out.println(result);
                 continue;
             }
-
             if (splitedStr.startsWith("#"))
             {
-
                 for (int i = 0; i < biaoZhu.length; i++)
                 {
                     //搜索是哪个标注 //DATE
@@ -156,22 +121,16 @@ public class ChangeToFeature
                     //以#开头且以#结尾，那么肯定是单个的 //  #DATE#今日/t#DATE#
                     String wordAndNature = splitedStr.substring((strBiaoZhu.length()+2),
                             splitedStr.length()-(strBiaoZhu.length()+2));
-                    //  今日/t
                     String[] slashSplit = wordAndNature.split(sep);
                     result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_S"+"\n";
                     continue;
-                }
-
-                else
-                {
+                } else {
                     //以#开头，但不以#结尾   //  #OPER#脓肿/a
                     outTag = false;
                     String wordAndNature = splitedStr.substring((strBiaoZhu.length()+2),
                             splitedStr.length());
-                    //  今日/t
                     String[] slashSplit = wordAndNature.split(sep);
                     result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_B"+"\n";
-
                     continue;
                 }
             }
@@ -180,71 +139,54 @@ public class ChangeToFeature
                 System.out.println(splitedStr);
                 //不以#开头，但以#结尾   引流术/n#OPER#
                 outTag = true;
-                try{
+                try {
                     String wordAndNature = splitedStr.substring(0,
                             splitedStr.length()-(strBiaoZhu.length()+2));
-                    //  今日/t
                     String[] slashSplit = wordAndNature.split(sep);
                     result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+strBiaoZhu+"_E"+"\n";
-                }catch (Exception e){
+                } catch (Exception e){
                     e.printStackTrace();
                 }
-
                 continue;
-
             }
-
             if (outTag)
             {
-                //  拟/v
-//                System.out.println(splitedStr);
                 String[] slashSplit = splitedStr.split(sep);
                 if (slashSplit.length>1)
                 {
-
                     result = result+slashSplit[0]+"\t"+slashSplit[1]+"\t"+"OUT"+"\n";
                 }
-            }
-            else
-            {
-                //  切开/v     //  #OPER#脓肿/a 切开/v 引流术/n#OPER#
+            } else {
                 String[] slashSplit = splitedStr.split(sep);
                 result = result + slashSplit[0] + "\t" + slashSplit[1] + "\t" + strBiaoZhu + "_M" + "\n";
-
             }
-
         }
-//        System.out.println(result);
         return result;
     }
 
-
-    public static List<String> listFile(String dirFile)
-    {
-        List<String> fileList = new ArrayList<>();
-        File listFile = new File(dirFile);
-        String absolutePath;
-        if (listFile.isDirectory())
-        {
-            File[] files = listFile.listFiles();
-            for (File file : files)
-            {
-                if (file.isFile())
-                {
-                    absolutePath = file.getAbsolutePath();
-                    fileList.add(absolutePath);
-                }
-                else
-                {
-                    listFile(file.getAbsolutePath());
-                }
-            }
+    /**
+     * 将用新标注方法的句子转成用老标注方法的句子
+     * @param inline    一行用新标注方法的句子原文
+     * @param type  转换类型  senten/com
+     * @return 一行用老标注方法的句子原文
+     */
+    private String old2new(String inline, String type){
+        Predefine.HANLP_PROPERTIES_PATH = "/mnt/vol_0/wnd/ml/cmb/hanlp.properties";
+        StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
+        List<Term> termList = StandardTokenizer.segment(inline);
+        String result="";
+        for (Term term : termList) {
+            result+=term.word+"_"+term.nature+" ";
         }
-        else
-        {
-            absolutePath = listFile.getAbsolutePath();
-            fileList.add(absolutePath);
+        if(result.contains("][_w")){
+            result=result.replace("][_w","]_w [_w");
         }
-        return fileList;
+        result=result.trim();
+        Vector<String> biaodians = CommonlyTools.get_all_match(result, "(?<=\\[_w ).");
+        for (String biaodian : biaodians) {
+            result=result.replaceFirst("\\[_w ._w _CS_nx\\ ]_w","#CS#"+biaodian+"_w#CS#");
+        }
+        return result;
     }
+
 }

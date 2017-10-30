@@ -3,19 +3,18 @@ package parse;
 import bean.ComNerTerm;
 import bean.ParagraphParamer;
 import bean.SentenceTerm;
-import conf.CmbConfig;
-
-
 import com.hankcs.hanlp.utility.Predefine;
+import conf.CmbConfig;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import tools.Levenshtein;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,18 +27,14 @@ import java.util.regex.Pattern;
 public class CmbParse
 {
 	private static Log log = LogFactory.getLog(CmbParse.class);
-
-	public static Pattern tipPattern = Pattern.compile("（\\d{1,2}）|\\d{1,2}）|\\d{1,2}");
     public static String annotates[] =new String[]{"AC","OB"};//缺省成分补充
 	public static String andWord[] = new String[]{"与", "或", "、", "及"};
 	private ComParse comParse = null;
 	private SentenParse sentenParse = null;
-	private String serviceGroup = "";
 	private static OpinionMining mining = null;
 	private static Map<String,String> ruleMap = null;
 
     public CmbParse(CmbConfig cmbConfig) {
-
 		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
@@ -76,9 +71,40 @@ public class CmbParse
 		}
 	}
 
+	/**
+	 * 本地测试多份文本
+	 * @param args
+	 * @throws IOException
+	 */
+	public static void main(String[] args) throws IOException {
+		CmbConfig cmbConfig = loadConfig();
+		CmbParse cmbParse = new CmbParse(cmbConfig);
+		File dirInput = new File(args[0]);
+		File[] files = dirInput.listFiles();
+		for (File file: files) {
+			System.out.println(file);
+			if(file.toString().endsWith("/73"))
+				System.out.println();
+			Scanner scanner = null;
+			try {
+				scanner = new Scanner(file);
+				while (scanner.hasNextLine()) {
+					String strLine = scanner.nextLine();
+					List<String> inference = cmbParse.parse(strLine);
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			finally {
+				scanner.close();
+			}
+		}
+	}
 
-	/*
-	App调用入口
+	/**
+	 * App调用入口
+	 * @param text	请求的授信文本
+	 * @return	结构化结果
 	 */
 	public synchronized 	List<String> parse(String text) {
 		text=text.replace("\\(","）").replaceAll("\\)","）");//测试使用预处理修改至python部分
@@ -103,10 +129,10 @@ public class CmbParse
 
 			List<SentenceTerm> sentenceTerms = comFuseSenten(sentenList, comNerTermList);
 			// 成分句子融合
-//            log.info("成分句子融合后 "+sentenceTerms);
+
 			List<SentenceTerm> shortSentenceTerms =shortSentence(sentenceTerms);
             //长句化短句以及补充缺省
-//            log.info("长句化短句以及补充缺省后"+sentenceTerms);
+
 			System.out.println("原句：\t"+eachLine);
 			System.out.println("成分：\t"+shortSentenceTerms);
 			List<String> inference = inference(paramer,shortSentenceTerms,sentenceTerms);
@@ -121,17 +147,16 @@ public class CmbParse
 
 		if(normalization.size()>1)
 			normalization = removeDuplicates(normalization);
-		//数据去重
-//        log.info("java结果： " + normalization);
-		paramer=null;
 
 		return normalization;
 	}
 
-    /*
-    根据逗号，句号，分号将sentence中长的变短
-    */
-    private  List<SentenceTerm> shortSentence(List<SentenceTerm> sentenceTerms){
+	/**
+	 * 根据逗号，句号，分号将sentence中长的变短
+	 * @param sentenceTerms	句子集合
+	 * @return	变短的句子集合
+	 */
+	private  List<SentenceTerm> shortSentence(List<SentenceTerm> sentenceTerms){
         List<SentenceTerm> sTermList = new ArrayList<>();
         for(int i=0;i<sentenceTerms.size();i++){
             SentenceTerm sentenceTerm = sentenceTerms.get(i);
@@ -200,10 +225,14 @@ public class CmbParse
         return sTermList;
     }
 
-	/*
-	缺省策略，就近取缺省属性补充上去
-	有待完善 策略本身存在偏差
-	目前是向前搜寻所缺省的成分
+	/**
+	 * 缺省策略，就近取缺省属性补充上去
+	 有待完善 策略本身存在偏差
+	 目前是向前搜寻所缺省的成分
+	 * @param sentenceTerms
+	 * @param subscript
+	 * @param defaultType
+	 * @return
 	 */
 	private  List<SentenceTerm> dealDefault(List<SentenceTerm> sentenceTerms,int subscript,String defaultType)
 	{
@@ -265,9 +294,12 @@ public class CmbParse
 		}
         return sentenceTerms;
 	}
-	/*
-	补充缺省,处理办法
-	（2)。后半句缺失成分，给之加上
+
+	/**
+	 * 补充缺省,处理办法
+	 （2)。后半句缺失成分，给之加上
+	 * @param sentenceTerms
+	 * @return
 	 */
 	private  List<SentenceTerm> addedDefault(List<SentenceTerm> sentenceTerms){
 
@@ -303,7 +335,6 @@ public class CmbParse
 			for(int j=0;j<annotatesBoolean.length;j++) {
 				if(!annotatesBoolean[j]){//
 					//处理缺省
-					//  sentenceTerms i annotates[j]返回新的 newcomNerTermList
 					if(!annotatesBoolean[0]&&hasADFlag)//有OB少AC 但是短句有AD 情况不做缺省处理
 						continue;
                     sentenceTerms=dealDefault(sentenceTerms,i,annotates[j]);//缺省处理
@@ -313,8 +344,10 @@ public class CmbParse
 		return sentenceTerms;
 	}
 
-	/*
-	sentenceTerms预处理	合并相同成分
+	/**
+	 * sentenceTerms预处理	合并相同成分
+	 * @param sentenceTerms
+	 * @return
 	 */
 	private static List<SentenceTerm> preDeal(List<SentenceTerm> sentenceTerms) {
 		List<SentenceTerm> newSentenceTerms = new ArrayList<>();
@@ -328,14 +361,6 @@ public class CmbParse
                     		//将NA周围未识别部分扩充进来
 							int currentlyWordOffset=comNerTermList.get(j).offset;
 							String currentlyWord=comNerTermList.get(j).word;
-//							if(j>0){//获取之前的未定义成分
-//								int undefineWordOffset=comNerTermList.get(j-1).word.length()+comNerTermList.get(j-1).offset;
-//								String undefineWord=sentence.substring(undefineWordOffset-offset,currentlyWordOffset-offset).replaceAll("[\\u3001\\u53ca\\u6216\\u4e0e\\u548c]","");//去掉未定义中的、及或与和
-//								if(undefineWord!=null&&!undefineWord.equals("")){
-//									comNerTermList.get(j).setWord(undefineWord+currentlyWord);
-//									comNerTermList.get(j).setOffset(undefineWordOffset);
-//								}
-//							}
 							if(j<comNerTermList.size() - 1){//获取之后的未定义成分
 								int nextWordOffset=comNerTermList.get(j+1).offset;
 								if(nextWordOffset-currentlyWordOffset>currentlyWord.length()) {
@@ -388,11 +413,12 @@ public class CmbParse
 		return newSentenceTerms;
 	}
 
-
-
-	/*
-    融合句子划分和成分识别
-    */
+	/**
+	 * 融合句子划分和成分识别
+	 * @param sentenList
+	 * @param comNerTermList
+	 * @return
+	 */
 	private List<SentenceTerm> comFuseSenten(List<String> sentenList, List<ComNerTerm> comNerTermList) {
 		int sentenceLength;
 		int sentenceStart;
@@ -442,7 +468,6 @@ public class CmbParse
 			offset += sentenceLength + 1;
 		}
 
-
 		List<SentenceTerm> sTermListResult = new ArrayList<>();
 		//将只有EX与CO   分词成分word与句子一样的时候 EX合并前一句，CO与后一句合并
 		for(int i=0;i<sTermList.size();i++){
@@ -455,7 +480,6 @@ public class CmbParse
 					for(ComNerTerm comNerTerm:sentenceTerm1.getComNerTermList()){
 						sentenceTerm.getComNerTermList().add(comNerTerm);
 					}
-
 				}
 				else if(sentenceTerm.getComNerTermList().get(0).typeStr.equals("EX")&&i>0){
 					SentenceTerm sentenceTerm1 = sTermList.get(i - 1);
@@ -471,13 +495,12 @@ public class CmbParse
 			sTermListResult.add(sentenceTerm);
 		}
 		sTermList.clear();
-		sTermList=null;
 		return sTermListResult;
 	}
 
-
-	/*
-	本地测试加载cmb.yaml配置文件
+	/**
+	 * 本地测试加载cmb.yaml配置文件
+	 * @return	CmbConfig对象
 	 */
 	public static CmbConfig loadConfig() {
 		Scanner scanner = null;
@@ -506,7 +529,6 @@ public class CmbParse
 					String[] ruleFileSplit = strLine.split("modelPath: ");
 					cmbConfig.setModel(ruleFileSplit[1]);
 				}
-//				System.out.println(strLine);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -516,47 +538,10 @@ public class CmbParse
 		return cmbConfig;
 	}
 
-
-	/*
-	本地测试多份文本
-	 */
-	public static void main(String[] args) throws IOException {
-		CmbConfig cmbConfig = loadConfig();
-		CmbParse cmbParse = new CmbParse(cmbConfig);
-		File dirInput = new File(args[0]);
-		File[] files = dirInput.listFiles();
-		for (File file: files) {
-			System.out.println(file);
-
-			if(file.toString().endsWith("/73"))
-				System.out.println();
-
-//			FileWriter fileWriter = new FileWriter(file);
-
-			Scanner scanner = null;
-			try {
-				scanner = new Scanner(file);
-				while (scanner.hasNextLine()) {
-					String strLine = scanner.nextLine();
-					List<String> inference = cmbParse.parse(strLine);
-					for (String eachResult : inference) {
-					//	System.out.println("eachResult:\t"+eachResult);
-					}
-				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-			finally {
-				scanner.close();
-//				fileWriter.flush();
-//				fileWriter.close();
-			}
-		}
-	}
-
-
-	/*
-	处理条件句
+	/**
+	 * 处理条件句
+	 * @param sentenceTerm
+	 * @return	结果化结果
 	 */
 	public static String dealCondition(SentenceTerm sentenceTerm) {
 		StringBuffer sbAction = new StringBuffer();
@@ -573,9 +558,9 @@ public class CmbParse
 		for (int i = 0; i < symbolSplit.length; i++) {
 			int sentenEnd = location + symbolSplit[i].length();
 			boolean appendTag = false;
-			boolean coFlag=false;//是否条件成分被吸入sbCondition
+			boolean coFlag=false; //是否条件成分被吸入sbCondition
 			for (ComNerTerm eachComNerTerm : comNerTermList) {
-				if (eachComNerTerm.typeStr.toString().equals("CO") ) {//&& sbCondition.toString().equals("")
+				if (eachComNerTerm.typeStr.toString().equals("CO") ) {
 					sbCondition.append(eachComNerTerm.word);
 					location = eachComNerTerm.offset + eachComNerTerm.word.length();
 					coFlag=true;
@@ -611,7 +596,6 @@ public class CmbParse
 		if (sbAction.toString().length() > 0) {
 			String substring = sbAction.toString().substring(0, sbAction.toString().length() - 1);
 			String ret = sbCondition.toString() + " 动作:" + substring;
-//			System.out.println(ret);
 			return  ret;
 		}
 		else {
@@ -619,9 +603,12 @@ public class CmbParse
 		}
 	}
 
-
-	/*
-	将List集合中的每一个SentenceTerm分别处理
+	/**
+	 * 将List集合中的每一个SentenceTerm分别处理
+	 * @param paragraphParamer	段落对象
+	 * @param sentenceTermList	句子集合
+	 * @param longSentenceTerms	长句集合
+	 * @return
 	 */
 	public static List<String> inference(ParagraphParamer paragraphParamer,List<SentenceTerm> sentenceTermList,List<SentenceTerm> longSentenceTerms) {
 		List<String> in = new ArrayList<>();
@@ -743,7 +730,7 @@ public class CmbParse
 				if((hasVEFlag||hasVCFlag)&&!hasACFlag&&hasOBFlag) {
 
 					in.add("要求 "+str.toString());
-				}else
+				} else {
 				    if(!hasACFlag&&sentenceTerm.getSentence().contains("用途")&&hasOBFlag&&!str.toString().contains("用途")){
 
                         in.add("用于 "+str.toString());
@@ -753,7 +740,6 @@ public class CmbParse
 					}
                     else if(paragraphParamer.isHasrisk()){
 						// 还未识别的入风险点句法树识别风险点
-					//	System.out.println("进入risk：" + sentenceTerm.getSentence());
 						String result=riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
 						for(String longSentence:longSentenceList){
 							if(result!=null&&longSentence.contains(result)){
@@ -761,15 +747,16 @@ public class CmbParse
 							}
 						}
 					}
-                str=null;
+				}
 			}
 		}
 		return in;
 	}
 
-
-	/*
-	从SentenceTerm通过规则推导出最终结果
+	/**
+	 * 从SentenceTerm通过规则推导出最终结果
+	 * @param sentenceTerm	句子对象
+	 * @return	推导结果
 	 */
 	public static String inferenceInside(SentenceTerm sentenceTerm) {
 		List<ComNerTerm> comNerTermList = sentenceTerm.getComNerTermList();
@@ -781,9 +768,6 @@ public class CmbParse
 			word.append(comNerTerm.word + " ");
 		}
 		String typeAndWord = type.toString() + "\t" + word.toString();
-		if (!type.toString().equals("")) {
-//				System.out.println();
-		}
 		String ruleOut = ruleRecursion(type.toString().trim(), typeAndWord, sb);
 		StringBuffer inside_out = new StringBuffer();
 		if (!ruleOut.equals("")) {
@@ -792,12 +776,15 @@ public class CmbParse
 				String[] tabSplit = eachLine.split("\t");
 				inside_out.append(tabSplit[0]+"\n");
 			}
-//			System.out.println(ruleOut);
 		}
 		return inside_out.toString();
 	}
 
-
+	/**
+	 * 将有并列成分的句子分开，分成多个短句
+	 * @param sentenceTerm
+	 * @return	短句结果list
+	 */
 	private static List<SentenceTerm> connect(SentenceTerm sentenceTerm)
 	{
 		List<SentenceTerm> sentenceTermList = new ArrayList<>();
@@ -808,7 +795,6 @@ public class CmbParse
 		{
 			String doubleValues[] = new String[]{"OB", "NA"};
 			int count = 0;
-        //    System.out.println(sentenceTerm.getSentence());
 			while (true) {
 				outer:
 				for (int q = 0;q < sentenceTermList.size();q++) {
@@ -863,35 +849,6 @@ public class CmbParse
 									}
 									break outer;
 								}
-//								else
-//								{
-//									//重新生成一个句子
-//									String newsentence = sentenceTermList.get(q).getSentence();
-//									int newoffset = sentenceTermList.get(q).getOffset();
-//									List<ComNerTerm> newComNerTerm = new ArrayList<>();
-//
-//									for (int i1 = 0; i1 < comNerTermList.size(); i1++)
-//									{
-//										if (i1 == i)
-//										{
-//											newComNerTerm.add(new ComNerTerm(replaceStr,comNerTermList.get(i).typeStr,comNerTermList.get(i).offset));
-//											continue ;
-//										}
-//										if (i1 != (i+1))
-//										{
-//											newComNerTerm.add(new ComNerTerm(comNerTermList.get(i1).word,comNerTermList.get(i1).typeStr,comNerTermList.get(i1).offset));
-//										}
-//									}
-//									SentenceTerm newSentenceTerm = new SentenceTerm(newsentence,newComNerTerm,newoffset);
-//									sentenceTermList.remove(q);
-//									sentenList.remove(q);
-//									if (!sentenList.contains(newSentenceTerm.getSentence()));
-//									{
-//										sentenceTermList.add(newSentenceTerm);
-//										sentenList.add(newSentenceTerm.getSentence());
-//									}
-//									break outer;
-//								}
 							}
 						}
 					}
@@ -902,25 +859,28 @@ public class CmbParse
 						t++;
 					}
 				}
-				if (t == sentenceTermList.size()) //如果都没有连续属性出现就退出
+				if (t == sentenceTermList.size())
+					//如果都没有连续属性出现就退出
 					break;
 				count++;
-				if (count>15)break;  //防止陷入死循环
+				if (count>15) break;
+				//防止陷入死循环
 			}
 		}
 		return sentenceTermList;
 	}
-	//判断是否还存在需要连续的O或D或T
+
+	/**
+	 * 判断是否还存在需要连续的O或D或T
+	 * @param comNerTermList
+	 * @return true/false
+	 */
 	private static boolean hasDouble(List<ComNerTerm> comNerTermList)
 	{
 		StringBuffer sb = new StringBuffer();
 		for (ComNerTerm comNerTerm : comNerTermList) {
 			sb.append(comNerTerm.typeStr+" ");
 		}
-//		if (ruleMap.get(sb.toString().trim())!=null)
-//		{ //如果有这样的规则，则不需要分句
-//			return false;
-//		}
 		if (sb.toString().contains("OB OB")||sb.toString().contains("NA NA")) {
 			return true;
 		}
@@ -934,11 +894,7 @@ public class CmbParse
 		List<String> negtiveSentences = new ArrayList<String>();
 		OUT:
 		for (String sentence: sentences) {
-//			System.out.println(trie.parseText(sentence));
-//			if (trie.containsMatch(sentence))
 			{
-//				System.out.println("mining:"+mining);
-				//sentence=sentence.replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十壹贰叁肆伍陆柒捌玖拾0-9]+\\){0,1}）{0,1}[\\.、]{0,1}","");
 				OpinionMining.State state = null;
 				try {
 					state = mining.expansion(sentence);
@@ -958,30 +914,21 @@ public class CmbParse
 			return null;
 		return StringUtils.join(negtiveSentences.toArray(new String[0]), "\n");
 	}
-	/*
-    规则递归推导
-     */
+
+	/**
+	 * 规则递归推导
+	 * @param rule
+	 * @param lineStr
+	 * @param sb
+	 * @return
+	 */
 	public static String ruleRecursion(String rule,String lineStr,StringBuffer sb)
 	{
 		String ruleOut = ruleMap.get(rule);
 		if (ruleOut == null) {
-//			if(lineStr.length()>1)
-//			System.out.println("907 \t"+lineStr);
 			if (rule.equals(""))
 				return sb.toString();
-//			else if (!rule.contains("AC") && rule.contains("OB")) {
-////				System.out.println(rule);
-//				// TODO: 17-3-30  加缺失成分后面要仔细处理
-//					rule = "AC " + rule;
-//					lineStr = "AC" + lineStr;
-//					lineStr = lineStr.replace("\t", "\t要求 ");
-//					ruleOut = ruleMap.get(rule);
-//					if (ruleOut == null) {
-//						return sb.toString();
-//					}
-//			}
 			else {
-               // System.out.println("922\t"+sb.toString());
                 return sb.toString();
             }
 		}
@@ -1028,7 +975,13 @@ public class CmbParse
 		}
 		return sb.toString();
 	}
-	// 数据规范化
+
+
+	/**
+	 * 数据规范化
+	 * @param outList
+	 * @return 规范化后的list
+	 */
 	public static List<String> normalization(List<String> outList) {
 		List<String> normalList = new ArrayList<>();
 		for (String eachOut : outList) {
@@ -1044,22 +997,18 @@ public class CmbParse
 				}
 				if (!normalList.contains(eachLine)) {
 					normalList.add(eachLine);
-//					if (eachLine.contains("，") && !eachLine.contains("【") && !eachLine.contains("条件")) {
-//						String[] commaSplit = eachLine.split("，");
-//						for (String eachCommaSplit : commaSplit) {
-//							normalList.add(eachCommaSplit);
-//						}
-//					}
-//					else {
-//						normalList.add(eachLine);
-//					}
 				}
 			}
 		}
 		return normalList;
 	}
 
-	//数据去重
+
+	/**
+	 * 数据去重
+	 * @param outList
+	 * @return 去重后的list
+	 */
 	public static List<String> removeDuplicates(List<String> outList) {
 		List<String> normalList = new ArrayList<>();
 		int[][] charSimilar=new int[outList.size()][outList.size()];
@@ -1068,14 +1017,16 @@ public class CmbParse
 			for(int i=0;i<outList.size()-1;i++){
 				if(!outList.get(i).equals(eachLine)){
 					int diffLocation=Levenshtein.getCharLocation(eachLine,outList.get(i));
-					if(diffLocation>Math.min(eachLine.length(),outList.get(i).length())-1){//不同的位置大于较小的长度，表示包含
+					if(diffLocation>Math.min(eachLine.length(),outList.get(i).length())-1){
+						//不同的位置大于较小的长度，表示包含
 						charSimilar[x][i]=1;
 					}
 					else {
 						String diffstr1=eachLine.substring(diffLocation,eachLine.length());
 						String diffstr2=outList.get(i).substring(diffLocation,outList.get(i).length());
 						Levenshtein lt = new Levenshtein();
-						if(lt.getSimilarityRatio(diffstr1, diffstr2)>0.8001){//剩余部分的相似度大于，判断为相同句子
+						if(lt.getSimilarityRatio(diffstr1, diffstr2)>0.8001){
+							//剩余部分的相似度大于，判断为相同句子
 							charSimilar[x][i]=1;
 						}
 					}
@@ -1123,7 +1074,6 @@ public class CmbParse
 		}
 		normalList.clear();
 		for (Map.Entry<String, Vector<String>> entry : map.entrySet()) {
-			//System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
 			String key=entry.getKey();
 			Vector<String> value= entry.getValue();
 			if(value==null){
@@ -1140,8 +1090,6 @@ public class CmbParse
 				}
 		}
 		map.clear();
-		map=null;
-
 		return normalList;
 	}
 }

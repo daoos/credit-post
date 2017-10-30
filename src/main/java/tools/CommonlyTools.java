@@ -61,7 +61,6 @@ public class CommonlyTools {
             matched = m.group();
             all.add(matched);
         }
-
         return all;
-    }s
+    }
 }

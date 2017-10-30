@@ -21,38 +21,27 @@ import com.hankcs.hanlp.utility.Predefine;
 public class Segment
 {
 
-
 	private static String input = "/home/hpre/222/";
 	private static String out = "/home/hpre/222-out/";
 
-//	public static String predicates[] = {"严控","了解","争取","做好","关注","分析","办妥","办理","加强","审查","审核","建立",
-//			"扩大","承诺","控制","提供","收集","明确","查询","核实","核查","检查","沟通","注意","监控","考虑","落实","要求",
-//			"监测","监管","确保","纳入","统计","观察","超过","跟踪","跟进","防止","预防"
-//										};
+	/**
+	 * 主方法
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException
 	{
 //		normalSeg();
 		modifySegError();
 	}
 
-	/*
-	分词
-	predicate PR 谓语
-	attribute AT 定语
-	object	  OB 宾语
+	/**
+	 * 分词
+	 * @throws IOException
 	 */
 	public static void normalSeg() throws IOException
 	{
-		List<String> predicateList = new ArrayList<>();
-//		for (String predicate : predicates) {
-//			if (!predicateList.contains(predicate))
-//			{
-//				predicateList.add(predicate);
-//			}
-//		}
-
 		Predefine.HANLP_PROPERTIES_PATH = "/home/hpre/program/cmb/model/hanlp.properties";
-
 		File dirPath = new File(input);
 		File[] files = dirPath.listFiles();
 		for (File file : files)
@@ -64,33 +53,25 @@ public class Segment
 			{
 				String temStr = scanner.nextLine();
 				temStr=temStr.replaceAll(" ", "");
-//				StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
-//				System.out.println(temStr);
 				List<Term> segStr = StandardTokenizer.segment(temStr);
 				String result = "";
 				for (Term sTerm:segStr)
 				{
-//					if (predicateList.contains(sTerm.word))
-//						result = result+"#PR#"+sTerm.word+"_"+sTerm.nature+"#PR#"+" ";
-//					else
-						if (sTerm.nature.equals("nis"))
-						{
-							System.out.println("公司名--->"+sTerm);
-						}
-						result = result+sTerm.word+"_"+sTerm.nature+" "; //
+					result = result+sTerm.word+"_"+sTerm.nature+" ";
 				}
 				System.out.print(result);
 				System.out.println();
-//				System.out.println(result);
-				fileWriter.write(result+"\n"); //"#SENT_BEG#/begin "++" #SENT_END#/end"
+				fileWriter.write(result+"\n");
 			}
 			scanner.close();
 			fileWriter.close();
 		}
 	}
 
-
-	// 修正训练集中分词错误， 此处训练集指分词、标注后的训练集 格式为 "#AC#xx#AC#"
+	/**
+	 * 修正训练集中分词错误， 此处训练集指分词、标注后的训练集 格式为 "#AC#xx#AC#"
+	 * @throws IOException
+	 */
 	private static void modifySegError() throws IOException {
 		String[] repBeforeArr = new String[]{"经办_vn 行_ng", "套_q 现在_t",
 				"不少_mq 于_p", "流_v 贷_v", "贷_v 后_f", "出_vf 账_ng", "短_a 贷_v 长_a 用_p",
@@ -198,7 +179,6 @@ public class Segment
 			scanner.close();
 			fileWriter.close();
 		}
-
 	}
 
 }
