@@ -1,7 +1,6 @@
 *~
 *.swp
 *.pyc
-<<<<<<< .merge_file_olaG9b
 *.yaml
 *.iml
 *.jar
@@ -11,8 +10,4 @@ model/
 /.idea/
 target/
 src/test/*
-=======
 
-/.idea/
-target/
->>>>>>> .merge_file_dHhoWb
