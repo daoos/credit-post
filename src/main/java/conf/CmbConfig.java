@@ -10,6 +10,15 @@ public class CmbConfig {
     public String cmbSenten;
     public String modelPath;
 
+    public String getRegexFile() {
+        return regexFile;
+    }
+
+    public void setRegexFile(String regexFile) {
+        this.regexFile = regexFile;
+    }
+
+    public String regexFile;
     public String getModel() {
         return modelPath;
     }

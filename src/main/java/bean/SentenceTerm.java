@@ -11,12 +11,13 @@ public class SentenceTerm
     private String sentence;
     private int offset;
     private List<ComNerTerm> comNerTermList;
-
+    private Boolean isRegex;
     public SentenceTerm(String sentence, List<ComNerTerm> comNerTermList, int offset)
     {
         this.sentence = sentence;
         this.offset = offset;
         this.comNerTermList = comNerTermList;
+        this.isRegex = false;
     }
 
     public String getSentence()
@@ -51,5 +52,13 @@ public class SentenceTerm
 
     public void setOffset(int offset) {
         this.offset = offset;
+    }
+
+    public Boolean getRegex() {
+        return isRegex;
+    }
+
+    public void setRegex(Boolean regex) {
+        isRegex = regex;
     }
 }

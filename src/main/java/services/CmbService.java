@@ -28,8 +28,14 @@ public class CmbService {
         public List<String> parse0(String data)
         {
             CmbParse cmbCmbParse;
-            cmbCmbParse = new CmbParse(cmbConfig);
-            List<String> outList = cmbCmbParse.parse(data);
+            List<String> outList =null;
+            try {
+                cmbCmbParse = new CmbParse(cmbConfig);
+                outList = cmbCmbParse.parse(data);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return outList;
         }
 }

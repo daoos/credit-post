@@ -1,7 +1,11 @@
 package tools;
 
+import bean.RegRuleEntity;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,4 +68,51 @@ public class CommonlyTools {
         }
         return all;
     }
+    public static String match(String str,Pattern pattern){
+        String result = "";
+        Matcher m=pattern.matcher(str);
+        if(m.find()){
+            result = m.group();
+        }
+        return result;
+    }
+    public static List<RegRuleEntity> getAllRegRule(String filePath) throws Exception {
+        List<RegRuleEntity> list = new ArrayList<RegRuleEntity>();
+        Scanner sc = new Scanner(new File(filePath));
+        while(sc.hasNext()){
+            String line = sc.nextLine();
+            if(line.isEmpty() || line.startsWith("~")){
+                continue;
+            }
+
+            String[] splits = line.split("#");
+
+            if(line.startsWith("条件")){
+                RegRuleEntity entity = new RegRuleEntity();
+                entity.setType("条件");
+                entity.setIndex(splits[splits.length-1]);
+                entity.setRegx(splits[2]);
+                list.add(entity);
+            }else if(splits.length==3){
+                RegRuleEntity entity = new RegRuleEntity();
+                entity.setType(splits[0]);
+                entity.setIndex("0");
+                entity.setRegx(splits[2]);
+
+                list.add(entity);
+            }else if(splits.length==4){
+                RegRuleEntity entity = new RegRuleEntity();
+                entity.setType(splits[0]);
+                entity.setIndex(splits[splits.length-1]);
+                entity.setRegx(splits[2]);
+                list.add(entity);
+
+            }else{
+                System.out.println(line);
+            }
+        }
+        sc.close();
+        return list;
+    }
+
 }

@@ -2,6 +2,7 @@ package parse;
 
 import bean.ComNerTerm;
 import bean.ParagraphParamer;
+import bean.RegRuleEntity;
 import bean.SentenceTerm;
 import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
@@ -9,6 +10,7 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import tools.CommonlyTools;
 import tools.Levenshtein;
 
 import java.io.File;
@@ -33,8 +35,8 @@ public class CmbParse
 	private SentenParse sentenParse = null;
 	private static OpinionMining mining = null;
 	private static Map<String,String> ruleMap = null;
-
-    public CmbParse(CmbConfig cmbConfig) {
+	private static List<RegRuleEntity> allRegRule = null;
+    public CmbParse(CmbConfig cmbConfig) throws Exception {
 		Predefine.HANLP_PROPERTIES_PATH = cmbConfig.hanlp;
 		try {
 			comParse = new ComParse(cmbConfig);
@@ -45,7 +47,7 @@ public class CmbParse
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		allRegRule =CommonlyTools.getAllRegRule(cmbConfig.getRegexFile());
 		ruleMap = new HashMap<>();
 		Scanner scanner = null;
 		try {
@@ -78,7 +80,12 @@ public class CmbParse
 	 */
 	public static void main(String[] args) throws IOException {
 		CmbConfig cmbConfig = loadConfig();
-		CmbParse cmbParse = new CmbParse(cmbConfig);
+		CmbParse cmbParse = null;
+		try {
+			cmbParse = new CmbParse(cmbConfig);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		File dirInput = new File(args[0]);
 		File[] files = dirInput.listFiles();
 		for (File file: files) {
@@ -364,7 +371,13 @@ public class CmbParse
 							if(j<comNerTermList.size() - 1){//获取之后的未定义成分
 								int nextWordOffset=comNerTermList.get(j+1).offset;
 								if(nextWordOffset-currentlyWordOffset>currentlyWord.length()) {
-									comNerTermList.get(j).setWord(currentlyWord+sentence.substring(currentlyWordOffset+currentlyWord.length()-offset,nextWordOffset-offset));
+									try{
+										comNerTermList.get(j).setWord(currentlyWord+
+												sentence.substring(currentlyWordOffset+
+														currentlyWord.length()-offset,nextWordOffset-offset));
+									}catch ( Exception e){
+										e.printStackTrace();
+									}
 								}
 							}
 							//前后NA合并
@@ -529,6 +542,10 @@ public class CmbParse
 					String[] ruleFileSplit = strLine.split("modelPath: ");
 					cmbConfig.setModel(ruleFileSplit[1]);
 				}
+				if (strLine.contains("regexFile")) {
+					String[] ruleFileSplit = strLine.split("regexFile: ");
+					cmbConfig.setRegexFile(ruleFileSplit[1]);
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -621,6 +638,7 @@ public class CmbParse
 				longSentenceList.add(longSentenceTerm.getSentence());
 			}
 		}
+
 		for (SentenceTerm sentenceTerm : sentenceTermList) {
 			StringBuffer ruleOut = new StringBuffer();
 			String sentence = sentenceTerm.getSentence();
@@ -634,6 +652,10 @@ public class CmbParse
 			List<ComNerTerm> EXComNerTermList = new ArrayList<>();
 			String EXSentence = sentence;
 			int EXLength = 0;
+			int currComNum=0;
+			int firstComNeroffset = 0;
+			if(comNerTermList.size()>0)
+				firstComNeroffset = comNerTermList.get(0).getOffset();
 			for (ComNerTerm eachComNerTerm : comNerTermList) {
 				if (eachComNerTerm.typeStr.toString().equals("CO")) {
 					tagCO = true;
@@ -642,8 +664,16 @@ public class CmbParse
 					tagAC = true;
 				}
 				if (eachComNerTerm.typeStr.toString().equals("EX")) {
+
 					tagEX = true;
-					EXSentence = EXSentence.replace(StringEscapeUtils.unescapeJava(eachComNerTerm.word), "");
+					try {
+						String behind = EXSentence.substring(0, eachComNerTerm.offset-firstComNeroffset);
+						String front = EXSentence.substring(eachComNerTerm.offset-firstComNeroffset,
+								EXSentence.length()).replaceFirst(StringEscapeUtils.unescapeJava(eachComNerTerm.word), "");
+						EXSentence = behind + front;
+					}catch (Exception e){
+						e.printStackTrace();
+					}
 					if (EXWord.equals("")) {
 						EXWord = eachComNerTerm.word;
 						EXLength = EXWord.length();
@@ -652,16 +682,21 @@ public class CmbParse
 						EXLength = EXLength + eachComNerTerm.word.length();
 						EXWord = EXWord + "," + eachComNerTerm.word;
 					}
+					for(int i=currComNum+1;i<comNerTermList.size();i++){
+						ComNerTerm comNerTerm = comNerTermList.get(i);
+						comNerTerm.setOffset(comNerTerm.getOffset()-eachComNerTerm.word.length());
+					}
 				}
 				else {
 					String typeStr = eachComNerTerm.typeStr;
 					String word = eachComNerTerm.word;
 					int offset1 = eachComNerTerm.offset;
-					EXComNerTermList.add(new ComNerTerm(word, typeStr, offset1 - EXLength));
+					EXComNerTermList.add(new ComNerTerm(word, typeStr, offset1));
 				}
 				if (eachComNerTerm.typeStr.toString().equals("OB")) {
-					EXOB = StringEscapeUtils.unescapeJava(eachComNerTerm.word);
+					EXOB += StringEscapeUtils.unescapeJava(eachComNerTerm.word);
 				}
+				currComNum++;
 			}
 			//判断无AC情况将段中要求 关注 落实加入成分中：
 			//有段落AC 但是本局无AC情况
@@ -685,6 +720,7 @@ public class CmbParse
 			else {
 				if (tagEX) {
 					sentenceTerm = new SentenceTerm(EXSentence, EXComNerTermList, offset);
+					sentenceTerm.setSentence(EXSentence);
 				}
 				List<SentenceTerm> connect = connect(sentenceTerm);
                 List<SentenceTerm> preRet = preDeal(connect);
@@ -697,53 +733,77 @@ public class CmbParse
 				strRuleOut = strRuleOut.replace(EXOB, EXOB + "【" + EXWord + "】");
 //				System.out.println("--------------->>"+strRuleOut);
 			}
+			boolean specTreatment = true;//需不需要特殊处理
+
 			if (!ruleOut.toString().equals("")) {
 				in.add(strRuleOut);
+				specTreatment = false;
 			}
-			else {	//处理含有VE或VC不含有AC且没有匹配到规则的 直接加要求
-                //处理不含AC只有OB 情况
+			else{//正则模式判断
+				for (SentenceTerm longSentenceTerm : longSentenceTerms) {
+					String longSentence = longSentenceTerm.getSentence();
+					if(longSentence.contains(sentence)){
+						if(longSentenceTerm.getOffset()<=sentenceTerm.getOffset()){
+							if(!longSentenceTerm.getRegex()){
+								if(longSentence.length()>3){
+									//进入正则模式
+									String regRult = sentenRegParse(longSentence);
+									//对正则的结果判断
+									if(regRult!=null){
+										in.add(regRult);
+										specTreatment = false;
+									}
+								}
+								longSentenceTerm.setRegex(true);
+							}
+
+						}
+
+					}
+
+				}
+			}
+			if (specTreatment) {
+
+				//没有匹配到规则的处理
+				//处理含有VE或VC不含有AC且没有匹配到规则的 直接加要求
+				//处理不含AC只有OB 情况
 				//处理只有AD OB 情况
-				boolean hasVEFlag=false;
-                boolean hasVCFlag=false;
-				boolean hasACFlag=false;
-                boolean hasOBFlag=false;
-				boolean hasADFlag=false;
+				boolean hasVEFlag = false;
+				boolean hasVCFlag = false;
+				boolean hasACFlag = false;
+				boolean hasOBFlag = false;
 				List<ComNerTerm> comNerTermList1 = sentenceTerm.getComNerTermList();
+				boolean hasADFlag = false;
 				StringBuffer str = new StringBuffer();
 				for (ComNerTerm comNerTerm : comNerTermList1) {
-					if(comNerTerm.typeStr.equals("VE"))
-						hasVEFlag=true;
-					else
-						if(comNerTerm.typeStr.equals("AC"))
-							hasACFlag=true;
-					else
-                        if(comNerTerm.typeStr.equals("VC"))
-                            hasVCFlag=true;
-					else
-                        if(comNerTerm.typeStr.equals("OB"))
-                            hasOBFlag=true;
-					else
-						if(comNerTerm.typeStr.equals("AD"))
-							hasADFlag=true;
-                    str.append(comNerTerm.word);
+					if (comNerTerm.typeStr.equals("VE"))
+						hasVEFlag = true;
+					else if (comNerTerm.typeStr.equals("AC"))
+						hasACFlag = true;
+					else if (comNerTerm.typeStr.equals("VC"))
+						hasVCFlag = true;
+					else if (comNerTerm.typeStr.equals("OB"))
+						hasOBFlag = true;
+					else if (comNerTerm.typeStr.equals("AD"))
+						hasADFlag = true;
+					str.append(comNerTerm.word);
 				}
-				if((hasVEFlag||hasVCFlag)&&!hasACFlag&&hasOBFlag) {
+				if ((hasVEFlag || hasVCFlag) && !hasACFlag && hasOBFlag) {
 
-					in.add("要求 "+str.toString());
+					in.add("要求 " + str.toString());
 				} else {
-				    if(!hasACFlag&&sentenceTerm.getSentence().contains("用途")&&hasOBFlag&&!str.toString().contains("用途")){
+					if (!hasACFlag && sentenceTerm.getSentence().contains("用途") && hasOBFlag && !str.toString().contains("用途")) {
 
-                        in.add("用于 "+str.toString());
-                    }
-                    else if (hasADFlag&&hasOBFlag&&comNerTermList1.size()==2&&str.toString().contains("不得")){
-						in.add("不得 "+str.toString().replaceAll("不得",""));
-					}
-                    else if(paragraphParamer.isHasrisk()){
+						in.add("用于 " + str.toString());
+					} else if (hasADFlag && hasOBFlag && comNerTermList1.size() == 2 && str.toString().contains("不得")) {
+						in.add("不得 " + str.toString().replaceAll("不得", ""));
+					} else if (paragraphParamer.isHasrisk()) {
 						// 还未识别的入风险点句法树识别风险点
-						String result=riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
-						for(String longSentence:longSentenceList){
-							if(result!=null&&longSentence.contains(result)){
-								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十百壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}","").replace("_x000D_",""));
+						String result = riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
+						for (String longSentence : longSentenceList) {
+							if (result != null && longSentence.contains(result)) {
+								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十百壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}", "").replace("_x000D_", ""));
 							}
 						}
 					}
@@ -805,7 +865,13 @@ public class CmbParse
 								String dealSentens=sentenceTermList.get(q).getSentence().replace("\\","/");
 								int l = comNerTermList.get(i + 1).offset - comNerTermList.get(i).offset;
 								int subStart = comNerTermList.get(i).offset - sentenceTerm.getOffset();  //第一个NA的末尾位置
-								String subSentence = dealSentens.substring(subStart+comNerTermList.get(i).word.length(), subStart+l);
+								String subSentence=null;
+								try {
+									subSentence = dealSentens.substring(subStart+comNerTermList.get(i).word.length(), subStart+l);
+
+								}catch ( Exception e){
+									e.printStackTrace();
+								}
 								String replaceStr = subSentence+comNerTermList.get(i+1).word;
 								if ((subSentence.contains("、")||subSentence.contains("或")||subSentence.contains("及")||subSentence.contains("与"))) {
 									//重组成新的２句话
@@ -926,6 +992,7 @@ public class CmbParse
 	{
 		String ruleOut = ruleMap.get(rule);
 		if (ruleOut == null) {
+
 			if (rule.equals(""))
 				return sb.toString();
 			else {
@@ -1054,42 +1121,38 @@ public class CmbParse
 				normalList.add(outList.get(i));
 			}
 		}
-		HashMap<String,Vector<String>> map= new HashMap();
-		for (String eachLine : normalList) {
-			if (eachLine.contains(" ")) {
-				String[] commaSplit = eachLine.split(" ");
-				if (commaSplit.length == 2) {
-					if(map.containsKey(commaSplit[0])){
-						Vector<String> tmp=map.get(commaSplit[0]);
-						tmp.add(commaSplit[1]);
-					}else{
-						Vector<String> tmp=new Vector<String>();
-						tmp.add(commaSplit[1]);
-						map.put(commaSplit[0],tmp);
-					}
-				}else{
-					map.put(commaSplit[0],null);
-				}
-			}
-		}
-		normalList.clear();
-		for (Map.Entry<String, Vector<String>> entry : map.entrySet()) {
-			String key=entry.getKey();
-			Vector<String> value= entry.getValue();
-			if(value==null){
-				normalList.add(key);
-			}else
-				if(value.size()>1){
-					String obj="";
-					for(String one:value){
-						obj+=one+"&^%";
-					}
-					normalList.add(key+": "+obj.substring(0,obj.length()-3)	);
-				}else{
-				normalList.add(key+" "+value.get(0)	);
-				}
-		}
-		map.clear();
 		return normalList;
 	}
+
+
+	/**
+	 * 正则模式匹配
+	 * @param longSentence
+	 * @return 去重后的list
+	 */
+	private static String sentenRegParse(String longSentence){
+		String regResult =null;
+		for (RegRuleEntity regRule : allRegRule) {
+
+			String type = regRule.getType();
+			int index = regRule.getIndex();
+			Matcher m=regRule.getRegx().matcher(longSentence);
+			if(m.find()){
+				if("条件".equals(type)){
+					if(index>20){
+						regResult  ="条件:"+ m.group(2) + " 动作:" + m.group(1);
+					}else{
+						regResult= "条件:"+ m.group(1) + " 动作:"  + m.group(2);
+					}
+				}else {
+							regResult = type+" " + m.group(index);
+				}
+				break;
+			}
+		}
+		return regResult;
+	}
+
+
+
 }
