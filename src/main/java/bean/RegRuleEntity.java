@@ -6,10 +6,18 @@ import java.util.regex.Pattern;
  * Created by hadoop on 17-11-7.
  */
 public class RegRuleEntity {
+    public String getRegStr() {
+        return regStr;
+    }
 
+    private String regStr;
     private String type;
     private int index;
     private Pattern regx;
+    private boolean isShort = false;
+    public boolean isShort() {
+        return isShort;
+    }
 
     public String getType() {
         return type;
@@ -32,7 +40,14 @@ public class RegRuleEntity {
     }
 
     public void setRegx(String regx) {
+        regStr = regx;
         this.regx = Pattern.compile(regx);
+        if("条件".equals(type) ){
+            isShort = false;
+        }else{
+            isShort = true;
+        }
+
     }
 
 

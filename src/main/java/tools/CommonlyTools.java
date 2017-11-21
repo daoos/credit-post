@@ -2,7 +2,10 @@ package tools;
 
 import bean.RegRuleEntity;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -15,7 +18,20 @@ import java.util.regex.Pattern;
  */
 public class CommonlyTools {
 
+    public static void printFile(String str, String outPath, Boolean append) {
+        try {
+            FileOutputStream e = new FileOutputStream(outPath, append.booleanValue());
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(e);
+            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+            bufferedWriter.write(str);
+            bufferedWriter.close();
+            outputStreamWriter.close();
+            e.close();
+        } catch (Exception var6) {
+            var6.printStackTrace();
+        }
 
+    }
     public static boolean regEx(String sentense,String regExStr){
         // 要验证的字符串
         String str = sentense;

@@ -6,7 +6,7 @@ import tools.CommonlyTools;
  * Created by hadoop on 17-6-7.
  */
 public class ParagraphParamer {
-    public static String acWord[] =new String[]{"要求","关注","落实"};
+    public static String acWord[] =new String[]{"关注","落实"};//"要求",
     public ParagraphParamer(String text){
         if(text.contains("风险提示")) {
             //用于对风险点识别的判断入口讲后文出现的有风险提示的句子且后去判断为识别的地方做风险点判断

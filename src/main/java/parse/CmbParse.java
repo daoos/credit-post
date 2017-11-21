@@ -4,6 +4,9 @@ import bean.ComNerTerm;
 import bean.ParagraphParamer;
 import bean.RegRuleEntity;
 import bean.SentenceTerm;
+import com.hankcs.hanlp.corpus.tag.Nature;
+import com.hankcs.hanlp.seg.common.Term;
+import com.hankcs.hanlp.tokenizer.StandardTokenizer;
 import com.hankcs.hanlp.utility.Predefine;
 import conf.CmbConfig;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -95,10 +98,12 @@ public class CmbParse
 			Scanner scanner = null;
 			try {
 				scanner = new Scanner(file);
+				String text ="";
 				while (scanner.hasNextLine()) {
 					String strLine = scanner.nextLine();
-					List<String> inference = cmbParse.parse(strLine);
+					text+=strLine+"\n";
 				}
+				List<String> inference = cmbParse.parse(text);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -664,7 +669,6 @@ public class CmbParse
 					tagAC = true;
 				}
 				if (eachComNerTerm.typeStr.toString().equals("EX")) {
-
 					tagEX = true;
 					try {
 						String behind = EXSentence.substring(0, eachComNerTerm.offset-firstComNeroffset);
@@ -735,32 +739,65 @@ public class CmbParse
 			}
 			boolean specTreatment = true;//需不需要特殊处理
 
+
+
+			//获取短句所在长句
+			SentenceTerm locationLongSen =null;
+
+
+			for (SentenceTerm longSentenceTerm : longSentenceTerms) {
+				String longSentence = longSentenceTerm.getSentence();
+				if(longSentence.contains(sentence)){
+					if(longSentenceTerm.getOffset()<=sentenceTerm.getOffset()){
+						locationLongSen=longSentenceTerm;
+					}
+				}
+			}
 			if (!ruleOut.toString().equals("")) {
 				in.add(strRuleOut);
 				specTreatment = false;
+				//将规则匹配到的短句所在长句的isRegex 置true 不进行正则
+				if(locationLongSen!=null) {
+					locationLongSen.setRegex(true);
+				}
 			}
 			else{//正则模式判断
-				for (SentenceTerm longSentenceTerm : longSentenceTerms) {
-					String longSentence = longSentenceTerm.getSentence();
-					if(longSentence.contains(sentence)){
-						if(longSentenceTerm.getOffset()<=sentenceTerm.getOffset()){
-							if(!longSentenceTerm.getRegex()){
-								if(longSentence.length()>3){
-									//进入正则模式
-									String regRult = sentenRegParse(longSentence);
-									//对正则的结果判断
-									if(regRult!=null){
-										in.add(regRult);
-										specTreatment = false;
-									}
-								}
-								longSentenceTerm.setRegex(true);
-							}
+				//先进行短句的正则判断假如短句没有结果则进行长句判断
+				String outPath_yuanju = "/mnt/vol_0/wnd/usr/cmb/正则模式/效果/yuanwen";
+				String outPath_result = "/mnt/vol_0/wnd/usr/cmb/正则模式/效果/result";
+				String outPath_together ="/mnt/vol_0/wnd/usr/cmb/正则模式/效果/together";
 
-						}
-
+				String regRult = null;
+				if((locationLongSen!=null&&!locationLongSen.getRegex())||locationLongSen==null){
+					 regRult = sentenRegParse(sentenceTerm.getSentence(),"short");//短句进入正则模式
+				}
+				if(regRult!=null){
+					in.add(regRult);
+//					CommonlyTools.printFile(sentenceTerm.getSentence()+"\n",outPath_yuanju,true);
+//					CommonlyTools.printFile(regRult+"\n",outPath_result,true);
+//					CommonlyTools.printFile(sentenceTerm.getSentence()+"\t"+regRult+"\n",outPath_together,true);
+					specTreatment = false;
+					if(locationLongSen!=null) {
+						locationLongSen.setRegex(true);//将正则匹配到的短句所在长句的isRegex 置true 不进行正则
 					}
+				}else{
+					//长句判断
 
+					if(locationLongSen!=null&&!locationLongSen.getRegex()){
+						String longSentence = locationLongSen.getSentence();
+						if(longSentence.length()>3){
+							regRult = sentenRegParse(longSentence,"long");//进入正则模式
+							if(regRult!=null){//对正则的结果判断
+								in.add(regRult);
+								specTreatment = false;
+//								CommonlyTools.printFile(longSentence+"\n",outPath_yuanju,true);
+//								CommonlyTools.printFile(regRult+"\n",outPath_result,true);
+//								CommonlyTools.printFile(longSentence+"\t"+regRult+"\n",outPath_together,true);
+
+							}
+						}
+						locationLongSen.setRegex(true);
+					}
 				}
 			}
 			if (specTreatment) {
@@ -803,13 +840,15 @@ public class CmbParse
 						String result = riskPaser(sentenceTerm.getSentence().replaceFirst("风险提示", ""));
 						for (String longSentence : longSentenceList) {
 							if (result != null && longSentence.contains(result)) {
-								in.add(longSentence.replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十百壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}", "").replace("_x000D_", ""));
+								in.add(longSentence.replaceFirst("风险提示：", "").replaceFirst("风险提示", "").replaceAll("^（{0,1}\\({0,1}[一二三四五六七八九十百壹贰叁肆伍陆柒捌玖拾0-9]{1,2}\\){0,1}）{0,1}[\\.、]{0,1}", "").replace("_x000D_", ""));
 							}
 						}
 					}
 				}
 			}
 		}
+
+
 		return in;
 	}
 
@@ -1127,26 +1166,70 @@ public class CmbParse
 
 	/**
 	 * 正则模式匹配
-	 * @param longSentence
+	 * @param sentence
 	 * @return 去重后的list
 	 */
-	private static String sentenRegParse(String longSentence){
+	private static String sentenRegParse(String sentence,String sentenType){
 		String regResult =null;
+		//条件句 包含'后'的判断 是否需要正则
+		boolean needRegHou = false;
+		if(sentence.contains("后")){
+			StandardTokenizer.SEGMENT.enableAllNamedEntityRecognize(false);
+			List<Term> termList = StandardTokenizer.segment(sentence);
+			for (Term term : termList) {
+				if("后".equals(term.word)&&term.nature.equals(Nature.f)){
+					needRegHou = true;
+					break;
+				}
+			}
+		}
 		for (RegRuleEntity regRule : allRegRule) {
 
+
+			if(sentenType.equals("short")){
+
+			}
+			else if(sentenType.equals("long")&&!regRule.isShort()){
+
+			}else{
+				continue;
+			}
+			String regStr = regRule.getRegStr();
 			String type = regRule.getType();
 			int index = regRule.getIndex();
-			Matcher m=regRule.getRegx().matcher(longSentence);
+			boolean conditionHou = false;
+			if(regStr.contains("后")&&"条件".equals(regRule.getType())){//正则为带'后'的条件句
+				conditionHou = true;
+			}
+
+			Matcher m=regRule.getRegx().matcher(sentence);
 			if(m.find()){
 				if("条件".equals(type)){
-					if(index>20){
-						regResult  ="条件:"+ m.group(2) + " 动作:" + m.group(1);
-					}else{
-						regResult= "条件:"+ m.group(1) + " 动作:"  + m.group(2);
+					if(conditionHou){
+						if(!needRegHou){
+							continue;//假如正则为带'后'的条件判断且句子中的'后'是如同后续，后辈这种 正则不匹配其结果
+						}
 					}
+					String conditionStr = "";
+					String actionStr = "";
+					if(index>20){
+						conditionStr = m.group(2);
+						actionStr =m.group(1);
+					}else{
+						actionStr = m.group(2);
+						conditionStr =m.group(1);
+					}
+					if(actionStr.startsWith("，")){
+						actionStr = actionStr.substring(1,actionStr.length());
+					}
+					regResult  ="条件:"+ conditionStr + " 动作:" + actionStr;
 				}else {
-							regResult = type+" " + m.group(index);
+						regResult = type+" " + m.group(index);
 				}
+				if(regResult.endsWith(",")||regResult.endsWith("(")||regResult.endsWith("（")){
+					regResult=regResult.substring(0,regResult.length()-1);
+				}
+
 				break;
 			}
 		}
