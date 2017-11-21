@@ -5,8 +5,6 @@
 
 授信文本报告分析Cmb提供了一套用Java编写的文本识别API。它可以采用银行贷后审批报告文本输入，给出文本中出现的相关贷后要求以及风险点。目前仅支持中文的分析。
 
-Cmb代码是用Java编写的，并根据GNU通用公共许可证（v3或更高版本）授权。请注意，这是完整的GPL，允许许多免费使用，但不能将其用于分发给其他人的专有软件。
-
 #### Build Instructions
 
 Several times a year we distribute a new version of the software, which corresponds to a stable commit.
