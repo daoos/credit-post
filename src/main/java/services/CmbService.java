@@ -51,6 +51,8 @@ public class CmbService {
                     cmbCmbParse = new CmbParse(cmbConfig);
                     String text = repObj.getString("text");
                     outList = cmbCmbParse.parse(text);
+                    response = new ResponseResult(0x1200,"success",new AppResult(outList));
+
                 }catch (JSONException je){
                     je.printStackTrace();
                     response = new ResponseResult(0x1400,"error",new AppResult(new ArrayList<>()));
@@ -60,12 +62,9 @@ public class CmbService {
                     response = new ResponseResult(0x2000,"error",new AppResult(new ArrayList<>()));
 
                 }
-                if(outList ==null){
-                    response = new ResponseResult(0x1400,"error",new AppResult(new ArrayList<>()));
+                if(response ==null){
+                    response = new ResponseResult(0x1100,"error",new AppResult(new ArrayList<>()));
 
-                }
-                else{
-                    response = new ResponseResult(0x1200,"success",new AppResult(outList));
                 }
             }
             return response;
