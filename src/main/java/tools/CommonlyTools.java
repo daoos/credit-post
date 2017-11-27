@@ -1,6 +1,7 @@
 package tools;
 
 import bean.RegRuleEntity;
+import org.json.JSONArray;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -130,5 +131,20 @@ public class CommonlyTools {
         sc.close();
         return list;
     }
+    /**
+     * 根据List获取到对应的JSONArray
+     * @param list
+     * @return
+     */
+    public static JSONArray getJSONArrayByList(List<?> list){
+        JSONArray jsonArray = new JSONArray();
+        if (list==null ||list.isEmpty()) {
+            return jsonArray;//nerver return null
+        }
 
+        for (Object object : list) {
+            jsonArray.put(object);
+        }
+        return jsonArray;
+    }
 }
